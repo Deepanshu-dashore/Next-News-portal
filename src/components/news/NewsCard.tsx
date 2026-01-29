@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Badge } from '@/components/ui/Badge';
 import { formatDate } from '@/lib/utils';
 import { NewsArticle } from '@/types';
 
@@ -10,66 +9,51 @@ interface NewsCardProps {
 }
 
 export function NewsCard({ article, variant = 'default' }: NewsCardProps) {
-  if (variant === 'compact') {
-    return (
-      <Link 
-        href={`/article/${article.slug}`}
-        className="group flex gap-3 md:gap-4 py-3 px-2 hover:bg-[#F9FAFB] transition-colors border-b border-[#E5E7EB] last:border-b-0"
-      >
-        <div className="relative w-20 h-20 md:w-24 md:h-24 flex-shrink-0 overflow-hidden bg-[#F3F4F6]">
-          <Image
-            src={article.image}
-            alt={article.title}
-            fill
-            className="object-cover"
-          />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-sm md:text-base text-[#111827] mb-1 line-clamp-2 leading-tight group-hover:text-[#4F46E5] transition-colors">
-            {article.title}
-          </h3>
-          <p className="text-xs text-[#6B7280] font-normal">
-            {formatDate(article.publishedAt)}
-          </p>
-        </div>
-      </Link>
-    );
-  }
-
   return (
     <Link 
       href={`/article/${article.slug}`}
-      className="group block hover:bg-[#F9FAFB] transition-colors"
+      className="group block py-8 transition-colors"
     >
-      <article className="flex flex-col sm:flex-row gap-4 p-4 md:p-5">
+      <article className="flex flex-col sm:flex-row gap-8">
         {/* Thumbnail */}
-        <div className="relative w-full sm:w-56 h-40 sm:h-36 flex-shrink-0 overflow-hidden bg-[#F3F4F6]">
+        <div className="relative w-full sm:w-64 h-48 sm:h-40 shrink-0 overflow-hidden bg-gray-100 shadow-sm transition-transform duration-500 group-hover:shadow-md">
           <Image
             src={article.image}
             alt={article.title}
             fill
-            className="object-cover"
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
           />
+          <div className="absolute top-0 left-0">
+             <span className="bg-black text-white text-[9px] font-black uppercase px-2 py-1 tracking-widest">
+               {article.category}
+             </span>
+          </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-w-0 flex flex-col">
-          <div className="mb-2">
-            <Badge variant="accent">{article.category}</Badge>
+        <div className="flex-1 min-w-0 flex flex-col justify-center">
+          <div className="flex items-center gap-3 mb-3">
+             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-muted)">
+               {formatDate(article.publishedAt)}
+             </span>
+             <span className="w-1 h-1 rounded-full bg-gray-300" />
+             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-(--accent-primary)">
+               {article.readTime || '5'} Min Read
+             </span>
           </div>
           
-          <h3 className="font-bold text-lg md:text-xl text-[#111827] mb-2 line-clamp-2 leading-tight group-hover:text-[#4F46E5] transition-colors">
+          <h3 className="font-black text-xl md:text-2xl text-(--text-primary) mb-3 leading-tight group-hover:text-(--accent-primary) transition-colors tracking-tighter">
             {article.title}
           </h3>
           
-          <p className="text-[#6B7280] mb-3 line-clamp-2 leading-relaxed text-sm md:text-base">
+          <p className="text-(--text-secondary) mb-4 line-clamp-2 leading-relaxed text-sm font-medium">
             {article.summary}
           </p>
           
-          <div className="mt-auto flex items-center gap-2 text-xs md:text-sm text-[#6B7280] pt-2 border-t border-[#E5E7EB]">
-            <span className="font-semibold text-[#111827]">{article.author.name}</span>
-            <span className="text-[#D1D5DB]">|</span>
-            <span>{formatDate(article.publishedAt)}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-(--text-primary)">
+              By {article.author.name}
+            </span>
           </div>
         </div>
       </article>

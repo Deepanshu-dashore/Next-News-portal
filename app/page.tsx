@@ -2,39 +2,46 @@ import { Container } from '@/components/ui/Container';
 import { HeroSection } from '@/components/sections/HeroSection';
 import { LatestNewsSection } from '@/components/sections/LatestNewsSection';
 import { CategoryBlock } from '@/components/news/CategoryBlock';
+import { VideoSection } from '@/components/sections/VideoSection';
+import { BreakingNews } from '@/components/news/BreakingNews';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { EditorPickWidget } from '@/components/widgets/EditorPickWidget';
 import { NewsletterWidget } from '@/components/widgets/NewsletterWidget';
 import {
-  getFeaturedArticle,
+  getFeaturedArticles,
   getTrendingArticles,
   getLatestArticles,
   getArticlesByCategory,
   getEditorPickArticles,
+  getArticleBySlug,
 } from '@/lib/mockData';
 
 export default function Home() {
-  const featuredArticle = getFeaturedArticle();
-  const trendingArticles = getTrendingArticles(3);
+  const featuredArticles = getFeaturedArticles(3);
+  const trendingArticles = getTrendingArticles(5);
   const latestArticles = getLatestArticles(5);
   const techArticles = getArticlesByCategory('Technology', 4);
   const businessArticles = getArticlesByCategory('Business', 4);
-  const sportsArticles = getArticlesByCategory('Sports', 4);
+  const worldArticles = getArticlesByCategory('World', 4);
   const editorPicks = getEditorPickArticles(3);
 
   return (
-    <Container>
-      <div className="py-8 md:py-12">
-        {/* Hero Section */}
-        <HeroSection 
-            featuredArticle={featuredArticle}
-            trendingArticles={trendingArticles}
+    <div className="pb-20">
+      {/* Breaking News Ticker */}
+      <BreakingNews articles={latestArticles} />
+
+      <Container>
+        <div className="py-8 md:py-12">
+          {/* Hero Section */}
+          <HeroSection 
+            featuredArticles={featuredArticles}
+            highlights={trendingArticles.slice(0, 4)}
           />
 
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
             {/* Main Content - 75% */}
-            <div className="lg:col-span-3 space-y-8 md:space-y-12">
+            <div className="lg:col-span-3 space-y-16">
               {/* Latest News */}
               <LatestNewsSection articles={latestArticles} />
 
@@ -57,21 +64,11 @@ export default function Home() {
                   articles={businessArticles.slice(1, 4)}
                 />
               )}
-
-              {/* Sports Category */}
-              {sportsArticles.length > 0 && (
-                <CategoryBlock
-                  title="Sports"
-                  viewAllHref="/category/sports"
-                  featuredArticle={sportsArticles[0]}
-                  articles={sportsArticles.slice(1, 4)}
-                />
-              )}
             </div>
 
             {/* Sidebar - 25% (Desktop only) */}
             <div className="hidden lg:block">
-              <div className="sticky top-20 space-y-6">
+              <div className="sticky top-28 space-y-10">
                 <Sidebar>
                   <EditorPickWidget articles={editorPicks} />
                   <NewsletterWidget />
@@ -80,6 +77,29 @@ export default function Home() {
             </div>
           </div>
         </div>
-    </Container>
+      </Container>
+
+      {/* Video Network - Full Width Section */}
+      <VideoSection articles={latestArticles.slice(0, 3)} />
+
+      <Container>
+         <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
+            <div className="lg:col-span-3">
+               {/* World Category */}
+              {worldArticles.length > 0 && (
+                <CategoryBlock
+                  title="World News"
+                  viewAllHref="/category/world"
+                  featuredArticle={worldArticles[0]}
+                  articles={worldArticles.slice(1, 4)}
+                />
+              )}
+            </div>
+            <div className="hidden lg:block">
+               {/* Additional sidebar widgets could go here */}
+            </div>
+         </div>
+      </Container>
+    </div>
   );
 }

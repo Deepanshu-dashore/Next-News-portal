@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { Container } from '@/components/ui/Container';
 import { Button } from '@/components/ui/Button';
@@ -25,7 +26,7 @@ export default function Header() {
       <TopBar />
       
       {/* Main Header / Logo Section */}
-      <div className="bg-white border-b border-gray-200 py-6 md:py-10">
+      <div className="bg-white border-b border-gray-200 py-6 md:py-6">
         <Container>
           <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-6">
             <div className="hidden md:flex flex-col gap-1">
@@ -38,13 +39,14 @@ export default function Header() {
             
             <div className="flex justify-center">
               <Link href="/" className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-(--text-primary) rounded-xl flex items-center justify-center transform -rotate-3 shadow-xl transition-transform hover:rotate-0">
-                  <span className="text-white font-black text-3xl">N</span>
-                </div>
-                <div className="flex flex-col leading-none">
-                  <span className="font-black text-4xl text-(--text-primary) tracking-tighter uppercase">NewsWeb</span>
-                  <span className="text-[11px] font-black text-(--text-muted) tracking-[0.3em] uppercase mt-1">International</span>
-                </div>
+                <Image
+                  src="/logo.png"
+                  alt="NewsWeb Logo"
+                  width={200}
+                  height={60}
+                  priority
+                  className="h-14 w-auto object-contain"
+                />
               </Link>
             </div>
 
@@ -71,9 +73,13 @@ export default function Header() {
         <Container>
           <div className="flex items-center justify-between">
             <div className={`flex items-center gap-3 transition-all duration-300 ${isScrolled ? 'opacity-100 w-auto' : 'opacity-0 w-0 overflow-hidden invisible'}`}>
-              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">N</span>
-              </div>
+              <Image
+                src="/logo-4by4.png"
+                alt="NewsWeb"
+                width={40}
+                height={40}
+                className="h-10 w-10 object-contain"
+              />
             </div>
 
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
@@ -104,12 +110,24 @@ export default function Header() {
           {/* Search Bar Overlay */}
           {showSearch && (
             <div className="py-6 border-t border-gray-100">
-              <Input 
-                type="search" 
-                placeholder="Type to search and press enter..." 
-                className="bg-gray-50 border-none h-14 text-xl font-bold focus:ring-0 placeholder:text-gray-300"
-                autoFocus
-              />
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  const query = formData.get('search') as string;
+                  if (query.trim()) {
+                    window.location.href = `/search?q=${encodeURIComponent(query)}`;
+                  }
+                }}
+              >
+                <Input 
+                  type="search"
+                  name="search"
+                  placeholder="Type to search and press enter..." 
+                  className="bg-gray-50 border-none h-14 text-xl font-bold focus:ring-0 placeholder:text-gray-300"
+                  autoFocus
+                />
+              </form>
             </div>
           )}
         </Container>

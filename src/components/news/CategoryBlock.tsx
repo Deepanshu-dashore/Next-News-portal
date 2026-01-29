@@ -15,7 +15,7 @@ export function CategoryBlock({ title, viewAllHref, featuredArticle, articles, v
   return (
     <section className="py-8 border-t border-gray-100 first:border-t-0">
       {/* Header */}
-      <div className="flex items-end justify-between mb-8 border-b-4 border-black pb-2">
+      <div className="flex items-end justify-between mb-8 border-b-2 border-black/20 pb-2">
         <div className="flex flex-col">
           <span className="text-[10px] font-black uppercase tracking-[0.4em] text-(--accent-primary) leading-none mb-2">Category</span>
           <h2 className="text-3xl font-black text-(--text-primary) uppercase tracking-tighter leading-none">{title}</h2>

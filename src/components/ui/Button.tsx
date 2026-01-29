@@ -20,7 +20,7 @@ export function Button({
   className,
   type = 'button' 
 }: ButtonProps) {
-  const baseStyles = 'inline-flex items-center justify-center font-bold transition-all rounded-full uppercase tracking-wider';
+  const baseStyles = 'inline-flex cursor-pointer items-center justify-center font-bold transition-all rounded-full uppercase tracking-wider';
   
   const variants = {
     primary: 'bg-(--accent-primary) text-white hover:bg-black shadow-md',

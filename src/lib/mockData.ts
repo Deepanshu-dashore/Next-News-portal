@@ -131,6 +131,10 @@ export function getFeaturedArticle(): NewsArticle {
   return mockArticles[0];
 }
 
+export function getFeaturedArticles(count: number = 3): NewsArticle[] {
+  return mockArticles.slice(0, count);
+}
+
 export function getTrendingArticles(count: number = 4): NewsArticle[] {
   return mockArticles.reverse().slice(1, 1 + count);
 }
@@ -147,4 +151,8 @@ export function getArticlesByCategory(category: string, count: number = 4): News
 
 export function getEditorPickArticles(count: number = 3): NewsArticle[] {
   return mockArticles.slice(5, 5 + count);
+}
+
+export function getArticleBySlug(slug: string): NewsArticle | undefined {
+  return mockArticles.find(article => article.slug === slug);
 }
