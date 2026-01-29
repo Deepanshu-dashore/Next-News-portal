@@ -9,10 +9,11 @@ interface VideoSectionProps {
 
 export function VideoSection({ articles }: VideoSectionProps) {
   return (
-    <section className="bg-black text-white py-16 my-12 overflow-hidden relative">
-      <div className="absolute top-0 right-0 w-1/3 h-full opacity-20 pointer-events-none">
+    <section className="bg-linear-to-b from-black via-black to-red-900 text-white py-16 my-12 overflow-hidden relative">
+      <div style={{backgroundImage:`url('/design.svg')`}} className="pointer-events-none text-white absolute inset-0 bg-repeat opacity-[0.1]" aria-hidden />
+      {/* <div className="absolute top-0 right-0 w-1/3 h-full opacity-20 pointer-events-none">
         <div className="w-full h-full bg-gradient-to-l from-[var(--accent-primary)] to-transparent" />
-      </div>
+      </div> */}
       
       <Container>
         <div className="flex items-center justify-between mb-10">

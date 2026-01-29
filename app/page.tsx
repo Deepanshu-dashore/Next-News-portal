@@ -7,6 +7,7 @@ import { BreakingNews } from '@/components/news/BreakingNews';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { EditorPickWidget } from '@/components/widgets/EditorPickWidget';
 import { NewsletterWidget } from '@/components/widgets/NewsletterWidget';
+import { HighlightCard } from '@/components/news/HighlightCard';
 import {
   getFeaturedArticles,
   getTrendingArticles,
@@ -24,6 +25,7 @@ export default function Home() {
   const businessArticles = getArticlesByCategory('Business', 4);
   const worldArticles = getArticlesByCategory('World', 4);
   const editorPicks = getEditorPickArticles(3);
+  const breakingSpotlight = latestArticles[0];
 
   return (
     <div className="pb-20">
@@ -72,6 +74,11 @@ export default function Home() {
                 <Sidebar>
                   <EditorPickWidget articles={editorPicks} />
                   <NewsletterWidget />
+                  {breakingSpotlight && (
+                    <div className="border border-gray-200 rounded-2xl overflow-hidden">
+                      <HighlightCard article={breakingSpotlight} tone="light" showMeta />
+                    </div>
+                  )}
                 </Sidebar>
               </div>
             </div>
@@ -96,7 +103,11 @@ export default function Home() {
               )}
             </div>
             <div className="hidden lg:block">
-               {/* Additional sidebar widgets could go here */}
+                 {latestArticles.slice(1, 4).map((article) => (
+                   <div key={article.id} className="mb-6 border border-gray-200 rounded-2xl overflow-hidden">
+                     <HighlightCard article={article} tone="light" showMeta />
+                   </div>
+                 ))}
             </div>
          </div>
       </Container>

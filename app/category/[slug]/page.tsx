@@ -43,14 +43,15 @@ export default async function CategoryPage({ params }:{ params: Promise<{ slug: 
   return (
     <div className="pb-20">
       {/* Category Header */}
-      <div className="bg-linear-to-r from-black to-gray-900 text-white py-16 border-b-4 border-[var(--accent-primary)]">
+      <div className="bg-linear-to-b from-black via-black to-red-900 text-white py-16 border-b-4 border-gray-200 relative">
+      <div style={{backgroundImage:`url('/design.svg')`}} className="pointer-events-none absolute inset-0 bg-repeat opacity-[0.07]" aria-hidden />
         <Container>
-          <div className="max-w-4xl">
+          <div className="max-w-4xl relative z-10">
             <div className="flex items-center gap-3 mb-4">
               <span className="w-3 h-3 bg-(--accent-primary) rounded-full animate-pulse"></span>
-              <span className="text-xs font-black uppercase tracking-[0.3em] text-gray-400">Category</span>
+              <span className="text-xs font-black uppercase tracking-[0.3em] text-gray-300">Category</span>
             </div>
-            <h1 className="text-5xl md:text-6xl font-black mb-4 uppercase tracking-tighter">
+            <h1 className="text-5xl text-white md:text-6xl font-black mb-4 uppercase tracking-tighter">
               {categoryName}
             </h1>
             <p className="text-xl text-gray-400 font-medium">

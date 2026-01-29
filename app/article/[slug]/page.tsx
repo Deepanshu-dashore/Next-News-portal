@@ -1,16 +1,19 @@
 import { Container } from '@/components/ui/Container';
-import { getArticleBySlug, getLatestArticles, mockArticles } from '@/lib/mockData';
+import { getArticleBySlug, getLatestArticles, getEditorPickArticles, mockArticles } from '@/lib/mockData';
 import { formatDate } from '@/lib/utils';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { EditorPickWidget } from '@/components/widgets/EditorPickWidget';
-import { NewsletterWidget } from '@/components/widgets/NewsletterWidget';
+import { HighlightCard } from '@/components/news/HighlightCard';
 import Link from 'next/link';
 
-export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
-  const article = getArticleBySlug((await params).slug);
-  const latestArticles = getLatestArticles(3);
+
+export default async function ArticlePage({ params }: { params : Promise<{ slug: string }> }) {
+   const article = getArticleBySlug((await params).slug);
+   const latestArticles = getLatestArticles(3);
+   const editorPicks = getEditorPickArticles(3);
+   const highlightArticle = editorPicks[0] ?? latestArticles[0];
 
   if (!article) {
     notFound();
@@ -20,6 +23,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     <div className="pb-20">
       {/* Article Header */}
       <div className="bg-black/80 text-white pt-20 pb-24 relative overflow-hidden">
+      <div style={{backgroundImage:`url('/design.svg')`}} className="pointer-events-none absolute inset-0 bg-repeat opacity-[0.07]" aria-hidden />
+        
         <div className="absolute inset-0 opacity-20">
           <Image
              src={article.image}
@@ -55,7 +60,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       </div>
 
       <Container>
-         <div className="max-w-6xl mx-auto -mt-16 relative z-20">
+         <div className="max-w-7xl mx-auto -mt-16 relative z-20">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
                {/* Main Article Content */}
                <div className="lg:col-span-8">
@@ -111,8 +116,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                <div className="lg:col-span-4 space-y-8 mt-10 lg:mt-0">
                   <div className="sticky top-28">
                      <Sidebar>
-                        <NewsletterWidget />
-                        <EditorPickWidget articles={latestArticles} />
+                           <EditorPickWidget articles={editorPicks} />
+                           {highlightArticle && (
+                             <div className="rounded-2xl border border-gray-200 overflow-hidden">
+                               <HighlightCard article={highlightArticle} />
+                             </div>
+                           )}
                      </Sidebar>
                   </div>
                </div>

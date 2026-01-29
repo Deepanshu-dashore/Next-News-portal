@@ -30,9 +30,30 @@ export interface Author {
   id: string;
   name: string;
   avatar?: string;
-  bio: string;
+  bio?: string;
   social?: {
     twitter?: string;
     linkedin?: string;
+    website?: string;
+  };
+}
+
+export interface AuthorProfile {
+  slug: string;
+  name: string;
+  title?: string;
+  expertise?: string;
+  bio?: string;
+  avatar?: string;
+  beats?: string[];
+  stats?: {
+    articles?: number;
+    followers?: string;
+    experience?: string;
+  };
+  social?: {
+    twitter?: string;
+    linkedin?: string;
+    website?: string;
   };
 }

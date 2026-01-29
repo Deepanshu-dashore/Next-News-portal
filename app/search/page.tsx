@@ -30,10 +30,11 @@ export default function SearchPage() {
   return (
     <div className="pb-20">
       {/* Search Header */}
-      <div className="bg-black text-white py-16 border-b-4 border-[var(--accent-primary)]">
-        <Container>
+      <div className="bg-linear-to-b from-black via-black to-red-900  text-white py-16 border-b-4 border-gray-200 relative">
+      <div style={{backgroundImage:`url('/design.svg')`}} className="pointer-events-none absolute inset-0 bg-repeat opacity-[0.07]" aria-hidden />
+        <Container className='relative z-20'>
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-black mb-6 uppercase tracking-tighter">
+            <h1 className="text-4xl text-white md:text-5xl font-black mb-6 uppercase tracking-tighter">
               Search News
             </h1>
             <p className="text-gray-400 mb-8 font-medium">

@@ -1,6 +1,81 @@
 // Mock Data for Development
 
-import { NewsArticle } from '@/types';
+import { NewsArticle, AuthorProfile } from '@/types';
+import { slugify } from '@/lib/utils';
+
+export const authorProfiles: AuthorProfile[] = [
+  {
+    slug: 'priya-kapoor',
+    name: 'Priya Kapoor',
+    title: 'Senior Journalist',
+    expertise: 'Expert in Science & Health',
+    avatar: '/avatars/author2.jpg',
+    bio: 'Priya tracks global breakthroughs in medical technology, preventive care, and public health policy.',
+    beats: ['Healthcare Innovation', 'Medical Research', 'Public Health'],
+    stats: {
+      articles: 128,
+      followers: '72K',
+      experience: '12 yrs',
+    },
+    social: {
+      twitter: 'https://twitter.com/',
+      linkedin: 'https://www.linkedin.com/',
+      website: '#',
+    },
+  },
+  {
+    slug: 'rajiv-sharma',
+    name: 'Rajiv Sharma',
+    title: 'Chief Business Correspondent',
+    expertise: 'Markets, Economy & Policy',
+    avatar: '/avatars/author1.jpg',
+    bio: 'Rajiv decodes fiscal policy, market moves, and corporate strategy for readers across the globe.',
+    beats: ['Economy', 'Policy', 'Markets'],
+    stats: {
+      articles: 215,
+      followers: '95K',
+      experience: '15 yrs',
+    },
+    social: {
+      twitter: 'https://twitter.com/',
+      linkedin: 'https://www.linkedin.com/',
+    },
+  },
+  {
+    slug: 'dr-amit-patel',
+    name: 'Dr. Amit Patel',
+    title: 'Technology Columnist',
+    expertise: 'AI & Emerging Tech',
+    bio: 'Former researcher turned storyteller translating complex AI advancements into human impact narratives.',
+    beats: ['Artificial Intelligence', 'Robotics', 'Innovation'],
+    stats: {
+      articles: 87,
+      followers: '54K',
+      experience: '9 yrs',
+    },
+    social: {
+      linkedin: 'https://www.linkedin.com/',
+      website: '#',
+    },
+  },
+  {
+    slug: 'maya-singh',
+    name: 'Maya Singh',
+    title: 'Global Affairs Editor',
+    expertise: 'Climate & Diplomacy',
+    bio: 'Maya brings nuanced analysis from climate summits, multilateral forums, and sustainable innovation labs.',
+    beats: ['Climate Action', 'Diplomacy', 'Energy'],
+    stats: {
+      articles: 162,
+      followers: '61K',
+      experience: '11 yrs',
+    },
+    social: {
+      twitter: 'https://twitter.com/',
+      linkedin: 'https://www.linkedin.com/',
+    },
+  },
+];
 
 export const mockArticles: NewsArticle[] = [
   {
@@ -155,4 +230,19 @@ export function getEditorPickArticles(count: number = 3): NewsArticle[] {
 
 export function getArticleBySlug(slug: string): NewsArticle | undefined {
   return mockArticles.find(article => article.slug === slug);
+}
+
+export function getAuthorProfile(slug: string): AuthorProfile | undefined {
+  return authorProfiles.find((author) => author.slug === slug);
+}
+
+export function getArticlesByAuthorSlug(slug: string, count?: number): NewsArticle[] {
+  const articles = mockArticles.filter(
+    (article) => slugify(article.author.name) === slug,
+  );
+  return typeof count === 'number' ? articles.slice(0, count) : articles;
+}
+
+export function getAllAuthorSlugs(): string[] {
+  return authorProfiles.map((author) => author.slug);
 }
