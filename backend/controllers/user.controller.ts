@@ -20,11 +20,29 @@ export class UserController {
         }
         const existingUser = await UserService.findUserByEmail(body.email);
         if (existingUser) {
-        return error("Email already in use", 400);
+            return error("Email already in use", 400);
         }
+        
+        // Ensure role is set, default to 'author' if not provided
+        if (!body.role) {
+            body.role = 'author';
+        }
+        
+        // Validate role
+        if (!['admin', 'author', 'editor'].includes(body.role)) {
+            return error("Invalid role. Must be admin, author, or editor", 400);
+        }
+        
         body["passwordHash"] = await bcrypt.hash(body.password, 10);
         const user = await UserService.registerUser(body);
-        return success(user, 201, "User registered successfully");
+        
+        // Return user with role
+        return success({
+            id: user._id.toString(),
+            email: user.email,
+            name: user.name,
+            role: user.role,
+        }, 201, "User registered successfully");
     }
 
     static async login (req: Request) {
@@ -42,12 +60,18 @@ export class UserController {
         }
         // Generate JWT token
         const token = signToken({ id: user._id, email: user.email, role: user.role });
-        const response = success({ email: user.email, role: user.role ,name: user.name,token }, 200, "Login successful")
+        const response = success({ 
+            id: user._id.toString(),
+            email: user.email, 
+            role: user.role,
+            name: user.name,
+            token 
+        }, 200, "Login successful")
         response.cookies.set("authToken", token, {
         httpOnly: true,
-        secure: true,
+        secure: process.env.NODE_ENV === 'production',
         sameSite: "strict",
-        maxAge: 60 * 60 * 24, // 1 day
+        maxAge: 60 * 60 * 24 * 7, // 7 days
         path: "/",
         });
 

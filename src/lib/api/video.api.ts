@@ -5,6 +5,7 @@ export interface Video {
   title: string;
   slug: string;
   description: string;
+  views: string[];
   CategoryId: {
     _id: string;
     name: string;
@@ -44,7 +45,7 @@ export interface CreateVideoData {
   videoUrl: string;
   durationSeconds?: number;
   publishedAt?: string;
-  status?: 'draft' | 'published' | 'archived';
+  status?: 'draft' | 'published' | 'archived'|undefined;
   uploadedBy: string;
   tags?: string[];
 }

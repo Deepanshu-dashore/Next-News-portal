@@ -15,7 +15,7 @@ const userSchema = new Schema({
         website : { type: String },
     },
     isActive: { type: Boolean, default: true  },
-    role: { type: String, enum: ['reader', 'author', 'editor'], default: 'reader' },
+    role: { type: String, enum: ['admin', 'author', 'editor', 'reader'], default: 'author' },
     lastLogin: { type: Date  },
 
 },{timestamps:true});

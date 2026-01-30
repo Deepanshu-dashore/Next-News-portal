@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getAuthToken, clearAuthCookies } from '@/src/lib/cookies';
 
 // Create axios instance with base configuration
 const apiClient = axios.create({
@@ -6,16 +7,16 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Include cookies in requests
 });
 
-// Request interceptor for adding auth token
+// Request interceptor for adding auth token from cookies
 apiClient.interceptors.request.use(
   (config) => {
-    // You can add auth token from cookies or local storage here
-    // const token = document.cookie.split('; ').find(row => row.startsWith('authToken='))?.split('=')[1];
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    const token = getAuthToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
@@ -29,8 +30,11 @@ apiClient.interceptors.response.use(
   (error) => {
     // Handle specific error cases here
     if (error.response?.status === 401) {
-      // Handle unauthorized access
-      console.error('Unauthorized access');
+      // Handle unauthorized access - clear cookies and redirect
+      clearAuthCookies();
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

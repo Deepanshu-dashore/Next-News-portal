@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/shared/Header";
 import Footer from "@/components/shared/Footer";
 import QueryProvider from "@/src/providers/QueryProvider";
+import { AuthProvider } from "@/src/contexts/AuthContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,13 +25,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} antialiased bg-[#F9FAFB]`}>
-        <QueryProvider>
-          <Header />
-          <main className="min-h-screen">
-            {children}
-          </main>
-          <Footer />
-        </QueryProvider>
+        <AuthProvider>
+          <QueryProvider>
+            <Header />
+            <main className="min-h-screen">
+              {children}
+            </main>
+            <Footer />
+          </QueryProvider>
+        </AuthProvider>
       </body>
     </html>
   );
