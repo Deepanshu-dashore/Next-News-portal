@@ -1,0 +1,122 @@
+import bcrypt from "bcryptjs";
+import { UserService } from "../services/user.servies";
+import { success, error } from "../utlis/response.utlis";
+import { authMiddleware } from "../middleware/auth.middleware";
+import { signToken } from "../lib/jwt";
+
+export class UserController {
+
+    // User controller methods 
+    static async register(req: Request) {
+        
+        const body = await req.json();
+
+        if(!body.name || !body.email || !body.password){
+            return error("Name, Email and Password are required", 400);
+        }
+        
+        if(body.password.length < 6){
+            return error("Password must be at least 6 characters long", 400);
+        }
+        const existingUser = await UserService.findUserByEmail(body.email);
+        if (existingUser) {
+        return error("Email already in use", 400);
+        }
+        body["passwordHash"] = await bcrypt.hash(body.password, 10);
+        const user = await UserService.registerUser(body);
+        return success(user, 201, "User registered successfully");
+    }
+
+    static async login (req: Request) {
+        const body = await req.json();
+        if(!body.email || !body.password){
+            return error("Email and Password are required", 400);
+        }
+        const user = await UserService.findUserByEmail(body.email);
+        if (!user) {
+            return error("Invalid email or password", 401);
+        }
+        const isPasswordValid = await bcrypt.compare(body.password, user.passwordHash);
+        if (!isPasswordValid) {
+            return error("Invalid email or password", 401);
+        }
+        // Generate JWT token
+        const token = signToken({ id: user._id, email: user.email, role: user.role });
+        const response = success({ email: user.email, role: user.role ,name: user.name,token }, 200, "Login successful")
+        response.cookies.set("authToken", token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+        maxAge: 60 * 60 * 24, // 1 day
+        path: "/",
+        });
+
+        return response;
+    }
+
+    static async getUserById(req: Request,  { params }: { params: { id: string } }) {
+        const authenticated = authMiddleware(req);
+        if (!authenticated) {
+            return error("Unauthorized request", 401);
+        }
+        const user = await UserService.getUserById(params.id);
+        if (!user) {
+            return error("User not found", 404);
+        }
+        return success(user, 200, "User fetched successfully");
+    }
+
+    static async updateUser(req: Request,  { params }: { params: { id: string } }) {
+        const authenticated = authMiddleware(req);
+        if (!authenticated) {
+            return error("Unauthorized request", 401);
+        }   
+        const body = await req.json();
+        const updatedUser = await UserService.updateUser(params.id, body);
+        if (!updatedUser) {
+            return error("User not found", 404);
+        }
+        return success(updatedUser, 200, "User updated successfully");
+    }
+
+    static async deleteUser(req: Request,  { params }: { params: { id: string } }) {
+        const authenticated = authMiddleware(req);
+        if (!authenticated) {
+            return error("Unauthorized request", 401);
+        }   
+        const deletedUser = await UserService.deleteUser(params.id);
+        if (!deletedUser) {
+            return error("User not found", 404);
+        }
+        return success(deletedUser, 200, "User deleted successfully");
+    }
+
+    static async deactivateUser(req: Request,  { params }: { params: { id: string } }) {
+        const authenticated = authMiddleware(req);
+        if (!authenticated) {
+            return error("Unauthorized request", 401);
+        }   
+        const user = await UserService.getUserById(params.id);
+        if (!user) {
+            return error("User not found", 404);
+        }
+        if(!user.isActive){
+            return error("User is already deactivated", 400);
+        }
+        const deactivatedUser = await UserService.deactivateUser(params.id);
+        if (!deactivatedUser) {
+            return error("User not found", 404);
+        }
+        return success(deactivatedUser, 200, "User deactivated successfully");
+    }
+
+    static async getAllUsers(req: Request) {
+        const authenticated = authMiddleware(req);
+        if (!authenticated) {
+            return error("Unauthorized request", 401);
+        }
+        const users = await UserService.getAllUsers();
+        return success(users, 200, "Users fetched successfully");
+    }
+
+}
