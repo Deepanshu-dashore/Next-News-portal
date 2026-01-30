@@ -54,56 +54,56 @@ export class UserController {
         return response;
     }
 
-    static async getUserById(req: Request,  { params }: { params: { id: string } }) {
+    static async getUserById(req: Request,  { params }: { params: Promise<{ id: string }> }) {
         const authenticated = authMiddleware(req);
         if (!authenticated) {
             return error("Unauthorized request", 401);
         }
-        const user = await UserService.getUserById(params.id);
+        const user = await UserService.getUserById((await params).id);
         if (!user) {
             return error("User not found", 404);
         }
         return success(user, 200, "User fetched successfully");
     }
 
-    static async updateUser(req: Request,  { params }: { params: { id: string } }) {
+    static async updateUser(req: Request,  { params }: { params: Promise<{ id: string }> }) {
         const authenticated = authMiddleware(req);
         if (!authenticated) {
             return error("Unauthorized request", 401);
         }   
         const body = await req.json();
-        const updatedUser = await UserService.updateUser(params.id, body);
+        const updatedUser = await UserService.updateUser((await params).id, body);
         if (!updatedUser) {
             return error("User not found", 404);
         }
         return success(updatedUser, 200, "User updated successfully");
     }
 
-    static async deleteUser(req: Request,  { params }: { params: { id: string } }) {
+    static async deleteUser(req: Request,  { params }: { params: Promise<{ id: string }> }) {
         const authenticated = authMiddleware(req);
         if (!authenticated) {
             return error("Unauthorized request", 401);
         }   
-        const deletedUser = await UserService.deleteUser(params.id);
+        const deletedUser = await UserService.deleteUser((await params).id);
         if (!deletedUser) {
             return error("User not found", 404);
         }
         return success(deletedUser, 200, "User deleted successfully");
     }
 
-    static async deactivateUser(req: Request,  { params }: { params: { id: string } }) {
+    static async deactivateUser(req: Request,  { params }: { params: Promise<{ id: string }> }) {
         const authenticated = authMiddleware(req);
         if (!authenticated) {
             return error("Unauthorized request", 401);
         }   
-        const user = await UserService.getUserById(params.id);
+        const user = await UserService.getUserById((await params).id);
         if (!user) {
             return error("User not found", 404);
         }
         if(!user.isActive){
             return error("User is already deactivated", 400);
         }
-        const deactivatedUser = await UserService.deactivateUser(params.id);
+        const deactivatedUser = await UserService.deactivateUser((await params).id);
         if (!deactivatedUser) {
             return error("User not found", 404);
         }

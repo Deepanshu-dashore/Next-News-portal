@@ -3,7 +3,7 @@ import { Schema, model, models,Types } from 'mongoose';
 const videoSchema = new Schema({
 
     title: { type: String, required: true },
-    slug: { type: String, required: true, unique: true },
+    slug: { type: String, required: true },
     description: { type: String, required: true },
     CategoryId: { type: Types.ObjectId, ref: 'Category', required: true },
     videoUrl: { type: String, required: true },
