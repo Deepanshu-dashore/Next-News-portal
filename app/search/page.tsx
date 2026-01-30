@@ -8,7 +8,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 function SearchContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams(); 
   const query = searchParams.get('q') || '';
   const [searchQuery, setSearchQuery] = useState(query);
   const [filteredArticles, setFilteredArticles] = useState(getLatestArticles(20));
