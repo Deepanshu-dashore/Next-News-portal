@@ -7,7 +7,7 @@ const articalSchema = new Schema({
     content: { type: String, required: true }, 
     excerpt: { type: String, required: true }, 
     summary: { type: String, required: true },
-    slug: { type: String, required: true, unique: true },
+    slug: { type: String, required: true },
     categoryId: { type: mongoose.Types.ObjectId, ref: 'Category', required: true },
     authorId: { type: mongoose.Types.ObjectId, ref: 'User', required: true },
     heroImageUrl: { type: String, required: true },

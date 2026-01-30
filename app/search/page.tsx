@@ -4,10 +4,10 @@ import { Container } from '@/components/ui/Container';
 import { Input } from '@/components/ui/Input';
 import { NewsCard } from '@/components/news/NewsCard';
 import { getLatestArticles } from '@/lib/mockData';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
   const [searchQuery, setSearchQuery] = useState(query);
@@ -98,5 +98,17 @@ export default function SearchPage() {
         </div>
       </Container>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    }>
+      <SearchContent />
+    </Suspense>
   );
 }
