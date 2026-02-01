@@ -4,6 +4,7 @@ import ProtectedRoute from '@/src/components/auth/ProtectedRoute';
 import { useRouter } from 'next/navigation';
 import { ArticlesTable } from '@/src/components/dashboard/ArticlesTable';
 import AdminHeader from '@/src/components/dashboard/AdminHeader';
+import { DeleteConfirmationModal } from '@/src/components/dashboard/DeleteConfirmationModal';
 import { useArticles, useDeleteArticle } from '@/src/hooks/useArticles';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -13,26 +14,27 @@ export default function ArticlesPage() {
   const router = useRouter();
   const { data: articles = [], isLoading, error } = useArticles();
   const deleteArticle = useDeleteArticle();
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; title: string } | null>(null);
 
   const handleEdit = (id: string) => {
     router.push(`/dashboard/articles/edit?id=${id}`);
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this article? This action cannot be undone.')) {
-      const loadingToast = toast.loading('Deleting article...');
-      try {
-        setDeletingId(id);
-        await deleteArticle.mutateAsync(id);
-        toast.success('Article deleted successfully!', { id: loadingToast });
-      } catch (error: any) {
-        console.error('Failed to delete article:', error);
-        const errorMessage = error?.response?.data?.message || error?.message || 'Something went wrong';
-        toast.error(`Failed to delete article: ${errorMessage}`, { id: loadingToast });
-      } finally {
-        setDeletingId(null);
-      }
+  const handleDelete = (id: string, title: string) => {
+    setDeleteConfirm({ id, title });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm) return;
+    const loadingToast = toast.loading('Deleting article...');
+    try {
+      await deleteArticle.mutateAsync(deleteConfirm.id);
+      toast.success('Article deleted successfully!', { id: loadingToast });
+      setDeleteConfirm(null);
+    } catch (error: any) {
+      console.error('Failed to delete article:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Something went wrong';
+      toast.error(`Failed to delete article: ${errorMessage}`, { id: loadingToast });
     }
   };
 
@@ -98,6 +100,15 @@ export default function ArticlesPage() {
         ) : (
           <ArticlesTable articles={articles} onEdit={handleEdit} onDelete={handleDelete} />
         )}
+
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmationModal
+          isOpen={!!deleteConfirm}
+          itemName={deleteConfirm?.title || ''}
+          isLoading={deleteArticle.isPending}
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteConfirm(null)}
+        />
       </div>
     </ProtectedRoute>
   );

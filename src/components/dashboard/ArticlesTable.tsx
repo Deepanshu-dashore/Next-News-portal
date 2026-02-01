@@ -19,7 +19,7 @@ interface Article {
 interface ArticlesTableProps {
   articles?: ArticleData[];
   onEdit?: (id: string) => void;
-  onDelete?: (id: string) => void;
+  onDelete?: (id: string, title: string) => void;
 }
 
 // Helper function to map API response to table format
@@ -153,11 +153,9 @@ export function ArticlesTable({ articles = [], onEdit, onDelete }: ArticlesTable
     }
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this article?')) {
-      if (onDelete) {
-        onDelete(id);
-      }
+  const handleDelete = (id: string, title: string) => {
+    if (onDelete) {
+      onDelete(id, title);
     }
   };
 
@@ -316,7 +314,7 @@ export function ArticlesTable({ articles = [], onEdit, onDelete }: ArticlesTable
                           Edit
                         </Link>
                         <button
-                          onClick={() => handleDelete(article.id || '')}
+                          onClick={() => handleDelete(article.id || '', article.title)}
                           className="px-3 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded hover:bg-red-200 transition"
                         >
                           Delete

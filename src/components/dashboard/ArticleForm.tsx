@@ -700,7 +700,7 @@ export function ArticleForm({ initialData, isEditing = false, articleId }: Artic
                     featuredImage: formData.featuredImagePreview,
                   };
                   const encoded = encodeURIComponent(JSON.stringify(previewData));
-                  window.open(`/dashboard/articles/preview?data=${encoded}`, '_blank');
+                  window.open(`/preview?data=${encoded}`, '_blank');
                 }}
                 className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-bold rounded-lg hover:bg-gray-50 transition-colors"
               >
