@@ -194,12 +194,6 @@ export default function VideosPage() {
                     <h2 className="text-2xl font-black uppercase tracking-tight text-gray-900">{category}</h2>
                     <p className="text-sm text-gray-500 mt-1">{videos.length} video{videos.length > 1 ? 's' : ''}</p>
                   </div>
-                  <Link
-                    href={`/category/${videos[0]?.CategoryId?.slug || category}`}
-                    className="text-xs font-black uppercase tracking-widest text-(--accent-primary) hover:text-gray-900"
-                  >
-                    See All
-                  </Link>
                 </div>
 
                 <div className="mt-8">
