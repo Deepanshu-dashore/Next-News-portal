@@ -192,3 +192,54 @@ export function useSearchArticles(query: string) {
     enabled: query.length >= 3,
   });
 }
+
+export function useUpdateArticle() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: CreateArticleData }) => {
+      const formData = new FormData();
+      
+      // Append all fields to FormData
+      formData.append('title', data.title);
+      formData.append('slug', data.slug || '');
+      formData.append('excerpt', data.excerpt || '');
+      formData.append('summary', data.description || '');
+      formData.append('content', data.content);
+      formData.append('categoryId', data.categoryId);
+      formData.append('status', data.status || 'draft');
+      formData.append('region', data.region || '');
+      formData.append('isBreaking', String(data.isBreaking || false));
+      
+      // Append tags as JSON string
+      if (data.tags && data.tags.length > 0) {
+        formData.append('tags', JSON.stringify(data.tags));
+      } else {
+        formData.append('tags', JSON.stringify([]));
+      }
+      
+      // Append featured image if it's a file
+      if (data.featuredImage && data.featuredImage instanceof File) {
+        formData.append('heroImage', data.featuredImage);
+      }
+      
+      return apiClient.put(`/article/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
+    }
+  });
+}
+
+export function useDeleteArticle() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/article/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['articles'] });
+    }
+  });
+}

@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import FormHeader from './FormHeader';
 import AdminHeader from './AdminHeader';
 import { useCategories } from '@/src/hooks/useCategories';
 import { useAuth } from '@/src/contexts/AuthContext';
-import { useCreateArticle, CreateArticleData } from '@/src/hooks/useArticles';
+import { useCreateArticle, useUpdateArticle, CreateArticleData } from '@/src/hooks/useArticles';
 
 interface ArticleFormData {
   title: string;
@@ -36,14 +37,15 @@ interface ArticleFormProps {
     isBreaking?: boolean;
   };
   isEditing?: boolean;
+  articleId?: string;
 }
 
-export function ArticleForm({ initialData, isEditing = false }: ArticleFormProps) {
+export function ArticleForm({ initialData, isEditing = false, articleId }: ArticleFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const articleId = searchParams.get('id');
   const { user } = useAuth();
   const createArticle = useCreateArticle();
+  const updateArticle = useUpdateArticle();
   const { data: categoriesData = [], isLoading: isLoadingCategories } = useCategories();
   
   // Handle categories data properly - it might be an object or array
@@ -91,6 +93,7 @@ export function ArticleForm({ initialData, isEditing = false }: ArticleFormProps
   const [errors, setErrors] = useState<Partial<ArticleFormData>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isImageUploading, setIsImageUploading] = useState(false);
+  const contentEditorRef = useRef<HTMLDivElement>(null);
 
   // Auto-generate slug from title
   useEffect(() => {
@@ -105,6 +108,22 @@ export function ArticleForm({ initialData, isEditing = false }: ArticleFormProps
       setFormData(prev => ({ ...prev, slug }));
     }
   }, [formData.title]);
+
+  // Sync contentEditable with formData only if content was changed from outside
+  useEffect(() => {
+    if (contentEditorRef.current) {
+      if (contentEditorRef.current.innerHTML !== formData.content) {
+        contentEditorRef.current.innerHTML = formData.content || "";
+      }
+    }
+  }, [formData.content]); // Re-run if content changes
+
+  // Set default paragraph separator on mount
+  useEffect(() => {
+    if (contentEditorRef.current) {
+      document.execCommand("defaultParagraphSeparator", false, "p");
+    }
+  }, []);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<ArticleFormData> = {};
@@ -176,17 +195,20 @@ export function ArticleForm({ initialData, isEditing = false }: ArticleFormProps
     e.preventDefault();
 
     if (!validateForm()) {
+      toast.error('Please fill in all required fields');
       return;
     }
 
     setIsLoading(true);
+    const loadingToast = toast.loading(isEditing ? 'Updating article...' : 'Creating article...');
+    
     try {
       const resolvedRegion = formData.region === 'Custom'
         ? formData.customRegion.trim()
         : formData.region;
 
       // Transform form data to match CreateArticleData interface
-      const createData: CreateArticleData = {
+      const articleData: CreateArticleData = {
         title: formData.title,
         slug: formData.slug,
         excerpt: formData.excerpt,
@@ -200,10 +222,24 @@ export function ArticleForm({ initialData, isEditing = false }: ArticleFormProps
         region: resolvedRegion,
         isBreaking: formData.isBreaking,
       };
-      await createArticle.mutateAsync(createData);
+
+      if (isEditing && articleId) {
+        // Update existing article
+        await updateArticle.mutateAsync({ id: articleId, data: articleData });
+        toast.success('Article updated successfully!', { id: loadingToast });
+      } else {
+        // Create new article
+        await createArticle.mutateAsync(articleData);
+        toast.success('Article created successfully!', { id: loadingToast });
+      }
+      
       router.push('/dashboard/articles');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting article:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Something went wrong';
+      toast.error(isEditing ? `Failed to update article: ${errorMessage}` : `Failed to create article: ${errorMessage}`, { 
+        id: loadingToast 
+      });
     } finally {
       setIsLoading(false);
     }
@@ -308,16 +344,123 @@ export function ArticleForm({ initialData, isEditing = false }: ArticleFormProps
           {/* Content */}
           <div className="bg-white rounded-lg shadow p-6">
             <label className="block text-sm font-bold text-gray-900 mb-3">Article Content *</label>
-            <textarea
-              name="content"
-              value={formData.content}
-              onChange={handleInputChange}
-              placeholder="Write your article content here... Supports markdown formatting"
-              rows={16}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition font-mono text-sm resize-none ${
-                errors.content ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
+            <div className="space-y-0">
+              {/* Toolbar */}
+              <div className="flex flex-wrap gap-2 p-2 border border-gray-300 rounded-t-lg bg-gray-50 sticky top-0 z-20">
+                {["bold", "italic", "underline"].map((cmd) => (
+                  <button
+                    key={cmd}
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      document.execCommand(cmd, false, "");
+                    }}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-200 capitalize font-medium"
+                    title={cmd}
+                  >
+                    {cmd === "bold" ? (
+                      <strong>B</strong>
+                    ) : cmd === "italic" ? (
+                      <em>I</em>
+                    ) : (
+                      <u>U</u>
+                    )}
+                  </button>
+                ))}
+                <div className="w-px h-6 bg-gray-300 mx-1 self-center" />
+
+                {/* Headings & Paragraph */}
+                <div className="flex items-center gap-1">
+                  {["h1", "h2", "h3", "h4", "h5", "h6"].map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        document.execCommand("formatBlock", false, tag);
+                      }}
+                      className="px-2 h-8 flex items-center justify-center text-xs font-bold border border-transparent rounded hover:bg-white hover:border-gray-200 hover:shadow-sm transition-all text-gray-600 uppercase"
+                      title={`Heading ${tag.replace("h", "")}`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+
+                  <button
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      document.execCommand("formatBlock", false, "p");
+                    }}
+                    className="px-2 h-8 flex items-center justify-center text-xs font-bold border border-transparent rounded hover:bg-white hover:border-gray-200 hover:shadow-sm transition-all text-gray-600 uppercase"
+                    title="Paragraph"
+                  >
+                    P
+                  </button>
+                  <button
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      document.execCommand("formatBlock", false, "blockquote");
+                    }}
+                    className="px-2 h-8 flex items-center justify-center text-xs font-bold border border-transparent rounded hover:bg-white hover:border-gray-200 hover:shadow-sm transition-all text-gray-600 uppercase"
+                    title="Quote"
+                  >
+                    " "
+                  </button>
+                </div>
+
+                <div className="w-px h-6 bg-gray-300 mx-1 self-center" />
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    if (contentEditorRef.current) {
+                      contentEditorRef.current.focus();
+                      document.execCommand("insertUnorderedList", false, "");
+                    }
+                  }}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-200"
+                  title="Bullet List"
+                >
+                  • List
+                </button>
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    if (contentEditorRef.current) {
+                      contentEditorRef.current.focus();
+                      document.execCommand("insertOrderedList", false,  "");
+                    }
+                  }}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-200"
+                  title="Ordered List"
+                >
+                  1. List
+                </button>
+              </div>
+
+              {/* Content Editable Area */}
+              <div
+                ref={contentEditorRef}
+                contentEditable
+                onInput={(e) => {
+                  const html = (e.target as HTMLDivElement).innerHTML;
+                  setFormData((prev) => ({ ...prev, content: html }));
+                }}
+                className="w-full min-h-[400px] border border-gray-300 rounded-b-lg p-6 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent prose max-w-none bg-white shadow-inner [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_blockquote]:bg-gray-50 [&_blockquote]:border-l-[4px] [&_blockquote]:border-primary/40 [&_blockquote]:pl-5 [&_blockquote]:pr-5 [&_blockquote]:py-5 [&_blockquote]:rounded-r [&_blockquote]:my-8 [&_blockquote]:italic [&_blockquote]:text-gray-700 [&_h1]:text-4xl [&_h2]:text-2xl [&_h3]:text-xl [&_h4]:text-lg [&_h5]:text-base [&_h5]:font-bold [&_h6]:text-sm [&_h6]:font-bold [&_p]:my-4 [&_p]:leading-relaxed"
+                style={{ whiteSpace: "pre-wrap" }}
+                data-placeholder="Start typing your blog content here..."
+                suppressContentEditableWarning
+              />
+              <input
+                type="hidden"
+                name="content"
+                value={formData.content}
+                required
+              />
+            </div>
             {errors.content && <p className="text-red-600 text-xs mt-2">{errors.content}</p>}
             <p className="text-xs text-gray-500 mt-2">{formData.content.length} characters</p>
           </div>
@@ -348,22 +491,45 @@ export function ArticleForm({ initialData, isEditing = false }: ArticleFormProps
                   </button>
                 </div>
               )}
-              <label className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:bg-gray-50 cursor-pointer transition">
-                <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                <p className="text-sm text-gray-600 font-semibold">
-                  {isImageUploading ? 'Uploading...' : 'Click to upload featured image'}
-                </p>
-                <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  disabled={isImageUploading}
-                  className="hidden"
-                />
-              </label>
+              <div className="flex items-center justify-center w-full">
+                <label
+                  htmlFor="dropzone-file"
+                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <svg
+                      className="w-8 h-8 mb-4 text-gray-500"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 20 16"
+                    >
+                      <path
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
+                      />
+                    </svg>
+                    <p className="mb-2 text-sm text-gray-500">
+                      <span className="font-semibold">Click to upload</span> (or
+                      drag and drop)
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      SVG, PNG, JPG or GIF (MAX. 800x400px)
+                    </p>
+                  </div>
+                  <input
+                    id="dropzone-file"
+                    type="file"
+                    className="hidden"
+                    name="featuredImage"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                  />
+                </label>
+              </div>
             </div>
           </div>
         </div>
@@ -518,13 +684,33 @@ export function ArticleForm({ initialData, isEditing = false }: ArticleFormProps
 
           {/* Action Buttons */}
           <div className="space-y-3">
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full px-6 py-3 bg-linear-to-r from-red-600 to-red-700 text-white font-bold rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? 'Saving...' : isEditing ? 'Update Article' : 'Publish Article'}
-            </button>
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="flex-1 px-6 py-3 bg-linear-to-r from-red-600 to-red-700 text-white font-bold rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? 'Saving...' : isEditing ? 'Update Article' : 'Publish Article'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const previewData = {
+                    ...formData,
+                    featuredImage: formData.featuredImagePreview,
+                  };
+                  const encoded = encodeURIComponent(JSON.stringify(previewData));
+                  window.open(`/dashboard/articles/preview?data=${encoded}`, '_blank');
+                }}
+                className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-bold rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <svg className="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                Preview
+              </button>
+            </div>
           </div>
 
           {/* Info Box */}

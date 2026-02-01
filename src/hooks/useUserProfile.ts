@@ -17,6 +17,12 @@ export interface UserProfile {
     website?: string;
   };
   lastLogin?: string;
+  totalArticles?: number;
+  totalPublishedArticles?: number;
+  totalDraftArticles?: number;
+  totalVideos?: number;
+  totalPublishedVideos?: number;
+  totalDraftVideos?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -38,10 +44,12 @@ export function useUserProfile(userId: string) {
   return useQuery({
     queryKey: ['userProfile', userId],
     queryFn: async () => {
-      const response = await apiClient.get(`/user/${userId}`);
+      const response = await apiClient.get(`/user/profile/${userId}`);
       return response.data.data as UserProfile;
     },
     enabled: !!userId,
+    retry: 1,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
 
