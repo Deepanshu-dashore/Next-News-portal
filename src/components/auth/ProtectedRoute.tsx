@@ -16,20 +16,12 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
 
   useEffect(() => {
     if (!isLoading) {
-      console.log('ProtectedRoute - User:', user);
-      console.log('ProtectedRoute - Allowed Roles:', allowedRoles);
-      console.log('ProtectedRoute - User Role:', user?.role);
-      
       if (!user) {
         // Not logged in, redirect to login
-        console.log('ProtectedRoute - No user, redirecting to login');
         router.push(`/author-login?redirect=${pathname}`);
       } else if (allowedRoles && !allowedRoles.includes(user.role)) {
         // User doesn't have required role
-        console.log('ProtectedRoute - User role not allowed, redirecting to unauthorized');
         router.push('/unauthorized');
-      } else {
-        console.log('ProtectedRoute - User authorized');
       }
     }
   }, [user, isLoading, router, pathname, allowedRoles]);

@@ -2,6 +2,7 @@
 
 import { CreateVideoData } from '@/src/lib/api/video.api';
 import { useState, useEffect } from 'react';
+import FormHeader from './FormHeader';
 
 interface VideoFormProps {
   video?: CreateVideoData | null;
@@ -104,14 +105,11 @@ export default function VideoForm({ video, onSubmit, onCancel, isLoading }: Vide
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border-2 border-gray-200 overflow-hidden">
       {/* Form Header */}
-      <div className="bg-gradient-to-r from-red-600 to-red-800 p-6">
-        <h2 className="text-2xl font-black text-white uppercase tracking-tight">
-          {video ? 'Edit Video' : 'Add New Video'}
-        </h2>
-        <p className="text-red-100 text-sm mt-1">
-          {video ? 'Update video information' : 'Fill in the details to add a new video'}
-        </p>
-      </div>
+      <FormHeader
+        title={video ? 'Edit Video' : 'Add New Video'}
+        description={video ? 'Update video information' : 'Fill in the details to add a new video'}
+        colorScheme="red"
+      />
 
       <div className="p-6 space-y-6">
         {/* Title */}
@@ -291,10 +289,13 @@ export default function VideoForm({ video, onSubmit, onCancel, isLoading }: Vide
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-3 text-gray-700 font-bold rounded-lg hover:bg-gray-200 transition-colors cursor-pointer"
+          className="px-6 py-3 text-gray-700 font-bold rounded-lg hover:bg-gray-200 transition-colors cursor-pointer flex items-center gap-2"
           disabled={isLoading}
         >
-          Cancel
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back
         </button>
         <button
           type="submit"

@@ -45,6 +45,10 @@ export class VideoController {
             body.slug = toSlug(body.slug);
         }
 
+        if(body.status === 'published'){
+            body.publishedAt = new Date();
+        }
+
         // Check if slug already exists
         const existingVideo = await VideoService.getVideoBySlug(body.slug);
         if (existingVideo) {

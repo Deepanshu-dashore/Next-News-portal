@@ -70,6 +70,15 @@
   }
 }
 
+.SideBarHide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.SideBarHide::-webkit-scrollbar {
+  display: none;
+}
+
 @keyframes marquee {
   0% {
     transform: translateX(0);

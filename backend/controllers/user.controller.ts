@@ -67,12 +67,14 @@ export class UserController {
             name: user.name,
             token 
         }, 200, "Login successful")
+        
+        // Set httpOnly cookie for secure token storage
         response.cookies.set("authToken", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: "strict",
-        maxAge: 60 * 60 * 24 * 7, // 7 days
-        path: "/",
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: "lax", // Changed from strict to lax for better compatibility with redirects
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+            path: "/",
         });
 
         return response;

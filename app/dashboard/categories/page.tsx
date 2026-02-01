@@ -1,22 +1,26 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/src/components/auth/ProtectedRoute';
 import { Container } from '@/components/ui/Container';
 import { DataTable, Column } from '@/src/components/dashboard/DataTable';
-import CategoryForm, { CategoryFormData } from '@/src/components/dashboard/CategoryForm';
-import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/src/hooks/useCategories';
+import AdminHeader from '@/src/components/dashboard/AdminHeader';
+import { useCategories, useDeleteCategory, useCreateCategory, useUpdateCategory } from '@/src/hooks/useCategories';
 import { Category } from '@/src/lib/api/category.api';
+import CategoryUploadForm, { CategoryUploadFormData } from '@/components/dashboard/CategoryUploadForm';
 
 export default function CategoriesManagementPage() {
-  const [showForm, setShowForm] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const router = useRouter();
   const [deleteConfirm, setDeleteConfirm] = useState<Category | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
 
   const { data: categories, isLoading } = useCategories();
+  const deleteMutation = useDeleteCategory();
   const createMutation = useCreateCategory();
   const updateMutation = useUpdateCategory();
-  const deleteMutation = useDeleteCategory();
 
   const columns: Column<Category>[] = [
     {
@@ -53,45 +57,57 @@ export default function CategoriesManagementPage() {
         </span>
       ),
     },
-    {
-      key: 'createdAt',
-      label: 'Created',
-      sortable: true,
-      render: (category) => (
-        <span className="text-sm text-gray-600">
-          {new Date(category.createdAt).toLocaleDateString()}
-        </span>
-      ),
-    },
-    {
-      key: 'updatedAt',
-      label: 'Updated',
-      sortable: true,
-      render: (category) => (
-        <span className="text-sm text-gray-600">
-          {new Date(category.updatedAt).toLocaleDateString()}
-        </span>
-      ),
-    },
+    // {
+    //   key: 'createdAt',
+    //   label: 'Created',
+    //   sortable: true,
+    //   render: (category) => (
+    //     <span className="text-sm text-gray-600">
+    //       {new Date(category.createdAt).toDateString()}
+    //     </span>
+    //   ),
+    // },
+    // {
+    //   key: 'updatedAt',
+    //   label: 'Updated',
+    //   sortable: true,
+    //   render: (category) => (
+    //     <span className="text-sm text-gray-600">
+    //       {new Date(category.updatedAt).toLocaleDateString()}
+    //     </span>
+    //   ),
+    // },
   ];
-
-  const handleSubmit = async (data: CategoryFormData) => {
-    try {
-      if (editingCategory) {
-        await updateMutation.mutateAsync({ id: editingCategory._id, data });
-      } else {
-        await createMutation.mutateAsync(data);
-      }
-      setShowForm(false);
-      setEditingCategory(null);
-    } catch (error) {
-      console.error('Error submitting category:', error);
-    }
-  };
 
   const handleEdit = (category: Category) => {
     setEditingCategory(category);
-    setShowForm(true);
+    setModalMode('edit');
+    setShowModal(true);
+  };
+
+  const handleOpenCreateModal = () => {
+    setEditingCategory(null);
+    setModalMode('create');
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditingCategory(null);
+    setModalMode('create');
+  };
+
+  const handleSubmit = async (data: CategoryUploadFormData) => {
+    try {
+      if (modalMode === 'create') {
+        await createMutation.mutateAsync(data);
+      } else if (editingCategory) {
+        await updateMutation.mutateAsync({ id: editingCategory._id, data });
+      }
+      handleCloseModal();
+    } catch (error) {
+      console.error(`Failed to ${modalMode} category:`, error);
+    }
   };
 
   const handleDelete = async (category: Category) => {
@@ -109,40 +125,38 @@ export default function CategoriesManagementPage() {
     }
   };
 
-  const handleCancel = () => {
-    setShowForm(false);
-    setEditingCategory(null);
-  };
-
   return (
     <ProtectedRoute allowedRoles={['admin', 'author', 'editor']}>
-      <Container>
-        {/* Page Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tight">
-                Category Management
-              </h1>
-              <p className="text-gray-600 mt-2">Organize your content with categories</p>
-            </div>
-            {!showForm && (
-              <button
-                onClick={() => setShowForm(true)}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-green-800 text-white font-bold rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all uppercase tracking-wide cursor-pointer"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Add New Category
-              </button>
-            )}
+      <AdminHeader
+        title="Category Management"
+        description="Organize your content with categories"
+        add={
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push('/dashboard/categories/bulk-upload')}
+              className="flex items-center gap-2 px-5 py-2 bg-linear-to-r from-blue-600 to-blue-700 text-white font-semibold text-sm rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all capitalize tracking-wide cursor-pointer"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              Bulk 
+            </button>
+            <button
+              onClick={handleOpenCreateModal}
+              className="flex items-center gap-2 px-5 py-2 bg-linear-to-r from-green-600 to-green-800 text-white font-semibold text-sm rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all capitalize tracking-wide cursor-pointer"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" viewBox="0 0 14 14">
+                <path fill="currentColor" fillRule="evenodd" d="M8 1a1 1 0 0 0-2 0v5H1a1 1 0 0 0 0 2h5v5a1 1 0 1 0 2 0V8h5a1 1 0 1 0 0-2H8z" clipRule="evenodd" strokeWidth={0.5} stroke="currentColor"></path>
+              </svg>
+              Add Category
+            </button>
           </div>
-        </div>
-
+        }
+      />
+      
+      <div>
         {/* Stats Cards */}
-        {!showForm && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-xl shadow-sm border-2 border-gray-200 p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -189,18 +203,9 @@ export default function CategoriesManagementPage() {
               </div>
             </div>
           </div>
-        )}
 
-        {/* Form or Table */}
-        {showForm ? (
-          <CategoryForm
-            category={editingCategory}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            isLoading={createMutation.isPending || updateMutation.isPending}
-          />
-        ) : (
-          <DataTable
+        {/* Categories Table */}
+        <DataTable
             data={categories?.data || []}
             columns={columns}
             onEdit={handleEdit}
@@ -209,6 +214,42 @@ export default function CategoriesManagementPage() {
             emptyMessage="No categories found. Click 'Add New Category' to create one."
             isLoading={isLoading}
           />
+
+        {/* Inline Form */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b-2 border-gray-200 px-6 py-4 flex items-center justify-between">
+                <h2 className="text-lg font-black text-gray-900">
+                  {modalMode === 'create' ? 'Create New Category' : `Edit ${editingCategory?.name}`}
+                </h2>
+                <button
+                  onClick={handleCloseModal}
+                  className="text-gray-500 hover:text-gray-700 cursor-pointer"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="p-6">
+                <CategoryUploadForm
+                  onSubmit={handleSubmit}
+                  onCancel={handleCloseModal}
+                  isLoading={createMutation.isPending || updateMutation.isPending}
+                  initialData={
+                    modalMode === 'edit' && editingCategory
+                      ? {
+                          name: editingCategory.name,
+                          description: editingCategory.description,
+                          isActive: editingCategory.isActive,
+                        }
+                      : undefined
+                  }
+                />
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Delete Confirmation Modal */}
@@ -248,7 +289,7 @@ export default function CategoriesManagementPage() {
             </div>
           </div>
         )}
-      </Container>
+      </div>
     </ProtectedRoute>
   );
 }

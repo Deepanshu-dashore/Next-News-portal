@@ -1,21 +1,20 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import ProtectedRoute from '@/src/components/auth/ProtectedRoute';
 import { Container } from '@/components/ui/Container';
 import { DataTable, Column } from '@/src/components/dashboard/DataTable';
-import VideoForm, { VideoFormData } from '@/src/components/dashboard/VideoForm';
-import { useVideos, useCreateVideo, useUpdateVideo, useDeleteVideo } from '@/src/hooks/useVideos';
-import { CreateVideoData, Video } from '@/src/lib/api/video.api';
+import { useVideos, useDeleteVideo } from '@/src/hooks/useVideos';
+import { Video } from '@/src/lib/api/video.api';
+import AdminHeader from '@/src/components/dashboard/AdminHeader';
+import { useRouter } from 'next/navigation';
 
 export default function VideosManagementPage() {
-  const [showForm, setShowForm] = useState(false);
-  const [editingVideo, setEditingVideo] = useState<Video | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Video | null>(null);
+  const router = useRouter();
 
   const { data: videos, isLoading } = useVideos();
-  const createMutation = useCreateVideo();
-  const updateMutation = useUpdateVideo();
   const deleteMutation = useDeleteVideo();
 
   const columns: Column<Video>[] = [
@@ -58,53 +57,21 @@ export default function VideosManagementPage() {
       },
     },
     {
-      key: 'views',
-      label: 'Views',
-      sortable: true,
-      render: (video) => (
-        <span className="font-semibold text-gray-700">{video.views?.length.toLocaleString() || 0}</span>
-      ),
-    },
-    {
-      key: 'createdAt',
-      label: 'Created',
+      key: 'publishedAt',
+      label: 'Published At',
       sortable: true,
       render: (video) => (
         <span className="text-sm text-gray-600">
-          {new Date(video.createdAt).toLocaleDateString()}
+          {video.publishedAt ? new Date(video.publishedAt).toLocaleDateString() : 'Not Available'}
         </span>
       ),
     },
   ];
 
-  const handleSubmit = async (data: VideoFormData) => {
-    try {
-      const submitData: CreateVideoData = {
-        title: data.title,
-        description: data.description,
-        videoUrl: data.videoUrl,
-        CategoryId: data.CategoryId,
-        tags: data.tags,
-        durationSeconds: data.durationSeconds,
-        status: data.status,
-        slug: data.title.toLowerCase().replace(/\s+/g, '-'),
-        uploadedBy: editingVideo?.uploadedBy?._id || '',
-      };
-      if (editingVideo) {
-        await updateMutation.mutateAsync({ id: editingVideo._id, data: submitData });
-      } else {
-        await createMutation.mutateAsync(submitData);
-      }
-      setShowForm(false);
-      setEditingVideo(null);
-    } catch (error) {
-      console.error('Error submitting video:', error);
-    }
-  };
+
 
   const handleEdit = (video: Video) => {
-    setEditingVideo(video);
-    setShowForm(true);
+    router.push(`/dashboard/videos/edit/${video.slug}`);
   };
 
   const handleDelete = async (video: Video) => {
@@ -122,39 +89,23 @@ export default function VideosManagementPage() {
     }
   };
 
-  const handleCancel = () => {
-    setShowForm(false);
-    setEditingVideo(null);
-  };
-
   return (
     <ProtectedRoute allowedRoles={['admin', 'author', 'editor']}>
-      <Container>
+      <div>
         {/* Page Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tight">
-                Video Management
-              </h1>
-              <p className="text-gray-600 mt-2">Manage all your video content</p>
-            </div>
-            {!showForm && (
-              <button
-                onClick={() => setShowForm(true)}
-                className="flex items-center gap-2 px-6 py-3 bg-linear-to-r from-red-600 to-red-800 text-white font-bold rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all uppercase tracking-wide cursor-pointer"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        <AdminHeader title='Video Management' description='Manage all your video content' add={
+           <button
+              onClick={() => router.push('/dashboard/videos/upload')  }
+              className="flex items-center gap-2 px-5 py-2 bg-linear-to-r from-emerald-600 to-emerald-800 text-white font-semibold text-sm rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all capitalize tracking-wide cursor-pointer"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M5.25 4A3.25 3.25 0 0 0 2 7.25v5.56a6.5 6.5 0 0 1 1.5-1.078V7.25c0-.966.784-1.75 1.75-1.75h7.5c.966 0 1.75.784 1.75 1.75v7.5a1.75 1.75 0 0 1-1.578 1.742a6.6 6.6 0 0 1 .06 1.5A3.25 3.25 0 0 0 16 14.75v-.312l3.258 2.25c1.16.8 2.744-.03 2.744-1.44V6.751c0-1.41-1.584-2.242-2.744-1.44L16 7.562V7.25A3.25 3.25 0 0 0 12.75 4zM16 9.384l4.11-2.838a.25.25 0 0 1 .392.206v8.495a.25.25 0 0 1-.392.206L16 12.615zM12 17.5a5.5 5.5 0 1 0-11 0a5.5 5.5 0 0 0 11 0M7 18l.001 2.503a.5.5 0 1 1-1 0V18H3.496a.5.5 0 0 1 0-1H6v-2.5a.5.5 0 1 1 1 0V17h2.497a.5.5 0 0 1 0 1z" strokeWidth={0.5} stroke="currentColor"></path>
                 </svg>
-                Add New Video
-              </button>
-            )}
-          </div>
-        </div>
+              Add Video
+            </button>
+         } />
 
         {/* Stats Cards */}
-        {!showForm && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div className="bg-white rounded-xl shadow-sm border-2 border-gray-200 p-6">
               <div className="flex items-center justify-between">
@@ -207,7 +158,7 @@ export default function VideosManagementPage() {
                 <div>
                   <p className="text-sm font-bold text-gray-600 uppercase">Total Views</p>
                   <p className="text-3xl font-black text-purple-600 mt-2">
-                    {videos?.data?.reduce((sum: number, v: Video) => sum + (v.views.length || 0), 0).toLocaleString() || 0}
+                    {(videos?.data?.reduce((sum: number, v: Video) => sum + (v?.views?.length || 0), 0) || 0).toLocaleString()}
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -219,27 +170,8 @@ export default function VideosManagementPage() {
               </div>
             </div>
           </div>
-        )}
 
         {/* Form or Table */}
-        {showForm ? (
-          <VideoForm
-            video={editingVideo ? {
-              title: editingVideo.title,
-              slug: editingVideo.slug,
-              description: editingVideo.description,
-              CategoryId: typeof editingVideo.CategoryId === 'string' ? editingVideo.CategoryId : editingVideo.CategoryId._id,
-              videoUrl: editingVideo.videoUrl,
-              durationSeconds: editingVideo.durationSeconds,
-              status: editingVideo.status,
-              uploadedBy: typeof editingVideo.uploadedBy === 'string' ? editingVideo.uploadedBy : editingVideo.uploadedBy._id,
-              tags: editingVideo.tags,
-            } as CreateVideoData : null}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            isLoading={createMutation.isPending || updateMutation.isPending}
-          />
-        ) : (
           <DataTable
             data={videos?.data || []}
             columns={columns}
@@ -249,7 +181,7 @@ export default function VideosManagementPage() {
             emptyMessage="No videos found. Click 'Add New Video' to create one."
             isLoading={isLoading}
           />
-        )}
+        
 
         {/* Delete Confirmation Modal */}
         {deleteConfirm && (
@@ -288,7 +220,7 @@ export default function VideosManagementPage() {
             </div>
           </div>
         )}
-      </Container>
+      </div>
     </ProtectedRoute>
   );
 }

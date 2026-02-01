@@ -1,42 +1,22 @@
 'use client';
 
-import ProtectedRoute from '@/src/components/auth/ProtectedRoute';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { Container } from '@/components/ui/Container';
+import AdminHeader from '@/src/components/dashboard/AdminHeader';
 import Link from 'next/link';
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
 
   return (
-    <ProtectedRoute allowedRoles={['admin', 'author', 'editor']}>
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-200 shadow-sm">
-          <Container>
-            <div className="flex items-center justify-between py-4">
-              <div>
-                <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Dashboard</h1>
-                <p className="text-sm text-gray-600 mt-1">Welcome back, {user?.name}</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-gray-900">{user?.name}</p>
-                  <p className="text-xs text-gray-500 uppercase">{user?.role}</p>
-                </div>
-                <button
-                  onClick={logout}
-                  className="px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
-          </Container>
-        </header>
+    <div className="min-h-screen bg-gray-50">
 
         {/* Content */}
         <Container className="py-12">
+          <AdminHeader
+            title="Dashboard"
+            description={`Welcome back, ${user?.name}`}
+          />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Stats Cards */}
             <div className="bg-white rounded-xl shadow-md p-6 border-2 border-gray-200 hover:border-(--accent-primary) transition-colors">
@@ -135,6 +115,5 @@ export default function DashboardPage() {
           </div>
         </Container>
       </div>
-    </ProtectedRoute>
   );
 }

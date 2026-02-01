@@ -132,8 +132,19 @@ export class CategoryController {
 
         // Validate each category
         for (const cat of body.categories) {
-            if (!cat.name || !cat.slug) {
-                return error("Each category must have name and slug", 400);
+            if (!cat.name) {
+                return error("Each category must have a name", 400);
+            }
+            // Auto-generate slug if not provided
+            if (!cat.slug) {
+                cat.slug = generateSlug(cat.name, {
+                addTimestamp: true,
+                timestampFormat: 'timestamp',
+                maxLength: 60
+            });
+            } else {
+                // Ensure provided slug is properly formatted
+                cat.slug = toSlug(cat.slug);
             }
         }
 

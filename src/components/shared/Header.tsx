@@ -115,18 +115,29 @@ export default function Header() {
                   e.preventDefault();
                   const formData = new FormData(e.currentTarget);
                   const query = formData.get('search') as string;
-                  if (query.trim()) {
+                  if (query.trim().length >= 3) {
                     window.location.href = `/search?q=${encodeURIComponent(query)}`;
                   }
                 }}
+                className="flex gap-3 items-center"
               >
                 <Input 
                   type="search"
                   name="search"
-                  placeholder="Type to search and press enter..." 
-                  className="bg-gray-50 border-none h-14 text-xl font-bold focus:ring-0 placeholder:text-gray-300"
+                  placeholder="Type to search (min 3 characters)..." 
+                  className="bg-gray-50 border-none h-14 text-xl font-bold focus:ring-0 placeholder:text-gray-300 flex-1"
                   autoFocus
+                  minLength={3}
                 />
+                <button
+                  type="submit"
+                  className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white font-bold rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all uppercase tracking-wide cursor-pointer flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  Search
+                </button>
               </form>
             </div>
           )}

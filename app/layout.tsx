@@ -5,6 +5,7 @@ import Header from "@/components/shared/Header";
 import Footer from "@/components/shared/Footer";
 import QueryProvider from "@/src/providers/QueryProvider";
 import { AuthProvider } from "@/src/contexts/AuthContext";
+import AppLayoutProvider from "@/src/components/layout/AppLayoutProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,11 +28,9 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased bg-[#F9FAFB]`}>
         <AuthProvider>
           <QueryProvider>
-            <Header />
-            <main className="min-h-screen">
+            <AppLayoutProvider >
               {children}
-            </main>
-            <Footer />
+            </AppLayoutProvider>
           </QueryProvider>
         </AuthProvider>
       </body>

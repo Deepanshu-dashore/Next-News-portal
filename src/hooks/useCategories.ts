@@ -96,3 +96,15 @@ export const useToggleCategoryStatus = () => {
     },
   });
 };
+
+// Bulk create categories mutation
+export const useBulkCreateCategories = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (categories: CreateCategoryData[]) => categoryApi.createBulkCategories(categories),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
+    },
+  });
+};

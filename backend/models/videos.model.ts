@@ -17,6 +17,8 @@ const videoSchema = new Schema({
 
 videoSchema.index({ slug: 1 }, { unique: true });
 
+videoSchema.index({ title: 'text', description: 'text', tags: 'text' });
+
 videoSchema.index({ CategoryId: 1, publishedAt: -1 });
 
 export const Video = models.Video || model('Video', videoSchema);

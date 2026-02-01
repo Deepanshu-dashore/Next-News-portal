@@ -1,34 +1,10 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { footerLinks } from '@/lib/constants';
-
-const popularCategoryLinks = [
-  'Headlines',
-  'Sports News',
-  'Business News',
-  'India News',
-  'World News',
-  'Bollywood News',
-  'Health+ Tips',
-  'Indian TV Shows',
-  'Technology',
-  'Travel',
-  'Etimes',
-  'Health & Fitness',
-  'Chinese Horoscope',
-  'Markets',
-  'Astrology',
-  'Weather Today',
-  'Gold Rate Today',
-  'Silver Rate Today',
-  'Bank Holidays',
-  'NFL Schedule',
-  'Is Bank Open Today',
-  'Is Bank Open Tomorrow',
-  'International Sports',
-  'Public Holidays',
-];
+import { useActiveCategories } from '@/src/hooks/useCategories';
 
 const latestNewsHeadlines = [
   "Love Horoscope Today, January 29, 2026",
@@ -54,6 +30,9 @@ const latestNewsHeadlines = [
 ];
 
 export default function Footer() {
+  const { data: categoriesData, isLoading } = useActiveCategories();
+  const activeCategories = categoriesData?.data || [];
+
   return (
     <footer className="bg-white text-gray-900 border-t border-gray-200">
       <Container>
@@ -207,11 +186,23 @@ export default function Footer() {
               <span className="text-sm font-medium text-gray-500">Stay on top of the beats you love</span>
             </div>
             <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-y-3 gap-x-8 text-sm text-gray-600">
-              {popularCategoryLinks.map((item) => (
-                <a key={item} href="#" className="hover:text-(--accent-primary) transition-colors">
-                  {item}
-                </a>
-              ))}
+              {isLoading ? (
+                <div className="col-span-full flex items-center justify-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400"></div>
+                </div>
+              ) : activeCategories.length > 0 ? (
+                activeCategories.map((category) => (
+                  <Link 
+                    key={category._id} 
+                    href={`/category/${category.slug}`} 
+                    className="hover:text-(--accent-primary) transition-colors"
+                  >
+                    {category.name}
+                  </Link>
+                ))
+              ) : (
+                <p className="col-span-full text-center text-gray-400">No categories available</p>
+              )}
             </div>
           </section>
 

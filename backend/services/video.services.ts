@@ -42,6 +42,11 @@ export class VideoService {
 
     static async updateVideo(id: string, data: any) {
         await connectDB();
+        if (data.status === 'published' && !data.publishedAt) {
+            data.publishedAt = new Date();
+        }else{
+            delete data.publishedAt;
+        }
         return await Video.findByIdAndUpdate(id, data, { new: true })
             .populate('CategoryId', 'name slug')
             .populate('uploadedBy', 'name email');

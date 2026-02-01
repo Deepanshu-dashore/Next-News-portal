@@ -87,7 +87,7 @@ export default function Home() {
       </Container>
 
       {/* Video Network - Full Width Section */}
-      <VideoSection articles={latestArticles.slice(0, 3)} />
+      <VideoSection />
 
       <Container>
          <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">

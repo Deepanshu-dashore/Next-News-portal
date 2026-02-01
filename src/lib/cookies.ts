@@ -11,15 +11,8 @@ export const COOKIE_NAMES = {
 export const COOKIE_OPTIONS = {
   expires: 7, // 7 days
   secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-  sameSite: 'lax' as const, // Changed from strict to lax for better compatibility
+  sameSite: 'lax' as const, 
   path: '/', // Available throughout app
-};
-
-// Session cookie options (expires when browser closes)
-export const SESSION_COOKIE_OPTIONS = {
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
-  path: '/',
 };
 
 /**

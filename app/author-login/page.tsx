@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -13,10 +13,18 @@ function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
-  const { login } = useAuth();
+  const { login, user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/dashboard';
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && user) {
+      console.log('Login page - User already logged in, redirecting to:', redirectTo);
+      router.push(redirectTo);
+    }
+  }, [user, authLoading, router, redirectTo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,50 +41,67 @@ function LoginForm() {
     }
   };
 
+  // Show loading while checking auth state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't show login form if already logged in
+  if (user) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1920&q=80&auto=format&fit=crop"
+          src="/Authorloginbg.png"
           alt="Background"
           fill
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
       </div>
+      {/* <div className="absolute z-10 inset-0 bg-black/50"></div> */}
 
       {/* Background Pattern */}
       <div 
         style={{ backgroundImage: `url('/design.svg')` }} 
-        className="absolute inset-0 opacity-5 z-10"
+        className="absolute inset-0 opacity-10 z-10"
         aria-hidden="true"
       />
 
-      {/* Login Card */}
-      <div className="relative z-20 w-full max-w-md px-4">
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+      {/* Login Card - White Theme */}
+      <div className="absolute z-20 w-full max-w-lg px-4">
+        <div className="bg-white border border-gray-200 rounded-3xl shadow-2xl overflow-hidden">
           {/* Card Header */}
-          <div className="bg-linear-to-r from-(--accent-primary) to-red-700 p-8 text-center">
-            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <svg className="w-8 h-8 text-(--accent-primary)" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-              </svg>
+          <div className="p-8 py-5 flex items-center gap-4 border-b border-gray-200">
+            <div className="w-60 h-auto flex items-center justify-center mx-auto bg-gray-50 rounded-lg">
+              <Image src="/logo.png" alt="Logo" width={64} height={64} className='object-contain object-center w-full h-full mt-2' />
             </div>
-            <h1 className="text-2xl font-black text-white uppercase tracking-tight mb-2">
-              Welcome Back
+            <div className='text-left w-full border-l-3 pl-5 border-red-400'>
+            <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight">
+              Welcome <span className=' text-red-600 text-shadow-xs '>Back</span>
             </h1>
-            <p className="text-sm text-white/90">
+            <p className="text-sm text-gray-600">
               Sign in to your account
             </p>
+            </div>
           </div>
 
           {/* Card Body */}
           <div className="p-8">
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-lg flex items-start gap-3">
-                <svg className="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <div className="mb-6 p-4 bg-red-50 border border-red-300 rounded-xl flex items-start gap-3">
+                <svg className="w-5 h-5 text-red-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
                 <p className="text-sm text-red-700 font-medium">{error}</p>
@@ -86,13 +111,13 @@ function LoginForm() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email Field */}
               <div>
-                <label htmlFor="email" className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">
+                <label htmlFor="email" className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
                   Email Address
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
                   <input
@@ -100,7 +125,7 @@ function LoginForm() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-(--accent-primary) focus:ring-2 focus:ring-(--accent-primary)/20 outline-none transition-all text-gray-900"
+                    className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:border-red-500 focus:ring-2 focus:ring-red-500/30 outline-none transition-all text-gray-900 placeholder-gray-400"
                     placeholder="author@newsweb.com"
                     required
                     disabled={isLoading}
@@ -110,7 +135,7 @@ function LoginForm() {
 
               {/* Password Field */}
               <div>
-                <label htmlFor="password" className="block text-sm font-bold text-gray-900 mb-2 uppercase tracking-wide">
+                <label htmlFor="password" className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
                   Password
                 </label>
                 <div className="relative">
@@ -124,7 +149,7 @@ function LoginForm() {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-lg focus:border-(--accent-primary) focus:ring-2 focus:ring-(--accent-primary)/20 outline-none transition-all text-gray-900"
+                    className="w-full pl-12 pr-12 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:border-red-500 focus:ring-2 focus:ring-red-500/30 outline-none transition-all text-gray-900 placeholder-gray-400"
                     placeholder="Enter your password"
                     required
                     disabled={isLoading}
@@ -132,7 +157,7 @@ function LoginForm() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
                   >
                     {showPassword ? (
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,7 +177,7 @@ function LoginForm() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 px-4 bg-linear-to-r from-(--accent-primary) to-red-700 text-white font-bold uppercase tracking-wider rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full py-3 cursor-pointer px-4 bg-linear-to-r from-red-600 to-red-700 text-white font-bold uppercase tracking-wider rounded-xl hover:shadow-xl hover:shadow-red-500/50 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {isLoading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -168,23 +193,29 @@ function LoginForm() {
               </button>
             </form>
 
-            {/* Footer Links */}
-            <div className="mt-6 text-center">
-              <Link 
-                href="/" 
-                className="text-sm text-gray-600 hover:text-(--accent-primary) font-medium transition-colors inline-flex items-center gap-1"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back to Home
-              </Link>
+            {/* Footer Links & Social Login */}
+            <div className="mt-8 space-y-6 border-t border-gray-200 pt-6">
+
+             
+
+              {/* Back to Home */}
+              <div className="text-center">
+                <Link 
+                  href="/" 
+                  className="text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors inline-flex items-center gap-1 group"
+                >
+                  <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  Back to Home
+                </Link>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Info Text */}
-        <p className="text-center text-white/80 text-sm mt-6">
+        <p className="text-center text-white text-sm mt-6 font-medium drop-shadow-lg">
           For author and editor access only
         </p>
       </div>

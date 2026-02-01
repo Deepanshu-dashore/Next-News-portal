@@ -18,11 +18,11 @@ const formatDuration = (seconds?: number): string => {
 // Helper function to format date
 const formatDate = (date?: string): string => {
   if (!date) return '';
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
 };
 
 // Helper function to get YouTube thumbnail
@@ -159,7 +159,7 @@ export default function VideoDetailPage() {
                 </div>
 
                 <div className="prose prose-gray max-w-none">
-                  <p className="text-gray-700 leading-relaxed">{video.description}</p>
+                  <p className="text-gray-700 leading-relaxed text-justify">{video.description}</p>
                 </div>
               </div>
 

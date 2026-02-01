@@ -39,7 +39,7 @@ export interface SingleVideoResponse {
 
 export interface CreateVideoData {
   title: string;
-  slug: string;
+  slug?: string; // Optional - auto-generated on backend if not provided
   description: string;
   CategoryId: string;
   videoUrl: string;
@@ -60,8 +60,8 @@ export const videoApi = {
 
   // Get published videos only
   getPublishedVideos: async (): Promise<VideoResponse> => {
-    const response = await apiClient.get('/video/published');
-    return response.data;
+      const response = await apiClient.get('/video/published');
+      return response.data;
   },
 
   // Get video by ID

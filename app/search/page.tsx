@@ -14,7 +14,7 @@ function SearchContent() {
   const [filteredArticles, setFilteredArticles] = useState(getLatestArticles(20));
 
   useEffect(() => {
-    if (searchQuery.trim()) {
+    if (searchQuery.trim().length >= 3) {
       const allArticles = getLatestArticles(20);
       const filtered = allArticles.filter(article =>
         article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -40,23 +40,38 @@ function SearchContent() {
             <p className="text-gray-400 mb-8 font-medium">
               Find the latest stories, breaking news, and in-depth analysis
             </p>
-            <div className="relative">
+            <div className="relative flex gap-3">
               <Input
                 type="search"
-                placeholder="Search articles, topics, authors..."
+                placeholder="Search articles, topics, authors... (min 3 characters)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-14 text-lg bg-white border-none focus:ring-2 focus:ring-[var(--accent-primary)]"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchQuery.trim().length >= 3) {
+                    e.preventDefault();
+                  }
+                }}
+                className="h-14 text-lg bg-white border-none focus:ring-2 focus:ring-[var(--accent-primary)] flex-1"
               />
-              <svg
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              <button
+                type="button"
+                onClick={() => {
+                  if (searchQuery.trim().length >= 3) {
+                    setSearchQuery(searchQuery.trim());
+                  }
+                }}
+                disabled={searchQuery.trim().length < 3}
+                className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white font-bold rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer flex items-center gap-2"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Search
+              </button>
             </div>
+            {searchQuery.trim().length > 0 && searchQuery.trim().length < 3 && (
+              <p className="text-yellow-300 text-sm mt-2 font-medium">Please enter at least 3 characters to search</p>
+            )}
           </div>
         </Container>
       </div>

@@ -5,7 +5,7 @@ const CategorySchema = new Schema({
   description: { type: String },
   isActive: { type: Boolean, default: true },
   slug: { type: String},
-});
+},{ timestamps:true });
 
 CategorySchema.index({ slug: 1 }, { unique: true });
 
