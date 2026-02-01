@@ -2,96 +2,116 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { ArticleData } from '@/src/hooks/useArticles';
 
 interface Article {
-  id: string;
+  _id: string;
+  id?: string;
   title: string;
   author: string;
   category: string;
   status: 'draft' | 'published';
-  views: number;
+  views?: number;
   createdAt: string;
   slug: string;
 }
 
 interface ArticlesTableProps {
-  articles?: Article[];
+  articles?: ArticleData[];
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
 }
 
-const defaultArticles: Article[] = [
-  {
-    id: '1',
-    title: 'Latest AI Developments Shape Future of Tech',
-    author: 'John Smith',
-    category: 'Technology',
-    status: 'published',
-    views: 3421,
-    createdAt: '2026-01-29',
-    slug: 'latest-ai-developments',
-  },
-  {
-    id: '2',
-    title: 'Global Markets Show Strong Growth',
-    author: 'Sarah Johnson',
-    category: 'Business',
-    status: 'published',
-    views: 2156,
-    createdAt: '2026-01-28',
-    slug: 'global-markets-growth',
-  },
-  {
-    id: '3',
-    title: 'Championship Team Wins Historic Victory',
-    author: 'Mike Davis',
-    category: 'Sports',
-    status: 'published',
-    views: 5342,
-    createdAt: '2026-01-27',
-    slug: 'championship-victory',
-  },
-  {
-    id: '4',
-    title: 'New Health Study Reveals Important Findings',
-    author: 'Dr. Emily Wilson',
-    category: 'Health',
-    status: 'draft',
-    views: 0,
-    createdAt: '2026-01-31',
-    slug: 'health-study-findings',
-  },
-  {
-    id: '5',
-    title: 'Entertainment Industry Updates for January',
-    author: 'Lisa Brown',
-    category: 'Entertainment',
-    status: 'published',
-    views: 1892,
-    createdAt: '2026-01-26',
-    slug: 'entertainment-updates',
-  },
-  {
-    id: '6',
-    title: 'Space Exploration: New Mission Announced',
-    author: 'James Wilson',
-    category: 'Science',
-    status: 'published',
-    views: 4126,
-    createdAt: '2026-01-25',
-    slug: 'space-mission-announced',
-  },
-];
+// Helper function to map API response to table format
+function mapApiToTableFormat(articles: ArticleData[]): Article[] {
+  return articles.map(article => ({
+    _id: article._id,
+    id: article._id || '',
+    title: article.title,
+    author: article.authorId?.name || 'Unknown',
+    category: article.categoryId?.name || 'Uncategorized',
+    status: article.status,
+    views: article.views || 0,
+    createdAt: new Date(article.createdAt).toISOString().split('T')[0],
+    slug: article.slug,
+  }));
+}
 
-export function ArticlesTable({ articles = defaultArticles, onEdit, onDelete }: ArticlesTableProps) {
+// const defaultArticles: Article[] = [
+//   {
+//     id: '1',
+//     title: 'Latest AI Developments Shape Future of Tech',
+//     author: 'John Smith',
+//     category: 'Technology',
+//     status: 'published',
+//     views: 3421,
+//     createdAt: '2026-01-29',
+//     slug: 'latest-ai-developments',
+//   },
+//   {
+//     id: '2',
+//     title: 'Global Markets Show Strong Growth',
+//     author: 'Sarah Johnson',
+//     category: 'Business',
+//     status: 'published',
+//     views: 2156,
+//     createdAt: '2026-01-28',
+//     slug: 'global-markets-growth',
+//   },
+//   {
+//     id: '3',
+//     title: 'Championship Team Wins Historic Victory',
+//     author: 'Mike Davis',
+//     category: 'Sports',
+//     status: 'published',
+//     views: 5342,
+//     createdAt: '2026-01-27',
+//     slug: 'championship-victory',
+//   },
+//   {
+//     id: '4',
+//     title: 'New Health Study Reveals Important Findings',
+//     author: 'Dr. Emily Wilson',
+//     category: 'Health',
+//     status: 'draft',
+//     views: 0,
+//     createdAt: '2026-01-31',
+//     slug: 'health-study-findings',
+//   },
+//   {
+//     id: '5',
+//     title: 'Entertainment Industry Updates for January',
+//     author: 'Lisa Brown',
+//     category: 'Entertainment',
+//     status: 'published',
+//     views: 1892,
+//     createdAt: '2026-01-26',
+//     slug: 'entertainment-updates',
+//   },
+//   {
+//     id: '6',
+//     title: 'Space Exploration: New Mission Announced',
+//     author: 'James Wilson',
+//     category: 'Science',
+//     status: 'published',
+//     views: 4126,
+//     createdAt: '2026-01-25',
+//     slug: 'space-mission-announced',
+//   },
+// ];
+
+export function ArticlesTable({ articles = [], onEdit, onDelete }: ArticlesTableProps) {
   const [selectedArticles, setSelectedArticles] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState<'title' | 'date' | 'views'>('date');
 
+  // Map API response to table format
+  const mappedArticles = mapApiToTableFormat(articles);
+
   // Filter and sort articles
-  let filteredArticles = articles.filter(article => {
+  let filteredArticles = mappedArticles.filter(article => {
     const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          article.author.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'all' || article.category.toLowerCase() === categoryFilter.toLowerCase();
@@ -105,7 +125,7 @@ export function ArticlesTable({ articles = defaultArticles, onEdit, onDelete }: 
       case 'title':
         return a.title.localeCompare(b.title);
       case 'views':
-        return b.views - a.views;
+        return (b.views || 0) - (a.views || 0);
       case 'date':
       default:
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -116,11 +136,12 @@ export function ArticlesTable({ articles = defaultArticles, onEdit, onDelete }: 
     if (selectedArticles.length === filteredArticles.length) {
       setSelectedArticles([]);
     } else {
-      setSelectedArticles(filteredArticles.map(a => a.id));
+      setSelectedArticles(filteredArticles.map(a => a.id || '').filter(id => id));
     }
   };
 
-  const toggleArticleSelect = (id: string) => {
+  const toggleArticleSelect = (id: string | undefined) => {
+    if (!id) return;
     setSelectedArticles(prev =>
       prev.includes(id) ? prev.filter(aid => aid !== id) : [...prev, id]
     );
@@ -262,7 +283,7 @@ export function ArticlesTable({ articles = defaultArticles, onEdit, onDelete }: 
                     <td className="px-6 py-4">
                       <input
                         type="checkbox"
-                        checked={selectedArticles.includes(article.id)}
+                        checked={article.id ? selectedArticles.includes(article.id) : false}
                         onChange={() => toggleArticleSelect(article.id)}
                         className="rounded border-gray-300"
                       />
@@ -284,18 +305,18 @@ export function ArticlesTable({ articles = defaultArticles, onEdit, onDelete }: 
                         {article.status.charAt(0).toUpperCase() + article.status.slice(1)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">{article.views.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">{(article.views || 0).toLocaleString()}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{article.createdAt}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <Link
-                          href={`/dashboard/articles/edit?id=${article.id}`}
+                          href={`/dashboard/articles/edit?id=${article.id || ''}`}
                           className="px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded hover:bg-blue-200 transition"
                         >
                           Edit
                         </Link>
                         <button
-                          onClick={() => handleDelete(article.id)}
+                          onClick={() => handleDelete(article.id || '')}
                           className="px-3 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded hover:bg-red-200 transition"
                         >
                           Delete

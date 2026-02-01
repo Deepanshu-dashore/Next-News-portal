@@ -21,7 +21,7 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
         router.push(`/author-login?redirect=${pathname}`);
       } else if (allowedRoles && !allowedRoles.includes(user.role)) {
         // User doesn't have required role
-        router.push('/unauthorized');
+        // router.push('/unauthorized');
       }
     }
   }, [user, isLoading, router, pathname, allowedRoles]);

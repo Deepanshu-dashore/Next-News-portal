@@ -2,24 +2,39 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useMutation } from '@tanstack/react-query';
 import FormHeader from './FormHeader';
 import AdminHeader from './AdminHeader';
+import { useCategories } from '@/src/hooks/useCategories';
+import { useAuth } from '@/src/contexts/AuthContext';
+import { useCreateArticle, CreateArticleData } from '@/src/hooks/useArticles';
 
 interface ArticleFormData {
   title: string;
   slug: string;
+  excerpt: string;
+  description: string;
   content: string;
   category: string;
   author: string;
-  featuredImage: string;
-  tags: string;
-  description: string;
+  featuredImage: string | File | null;
+  featuredImagePreview: string; // For preview display
+  tags: string[];
   status: 'draft' | 'published';
   publishDate: string;
+  region: 'India' | 'World' | 'Custom'|string;
+  customRegion: string;
+  isBreaking: boolean;
 }
 
 interface ArticleFormProps {
-  initialData?: ArticleFormData & { id?: string };
+  initialData?: Omit<ArticleFormData, 'tags' | 'region' | 'customRegion' | 'isBreaking'> & {
+    tags?: string[] | string;
+    id?: string;
+    region?: string;
+    customRegion?: string;
+    isBreaking?: boolean;
+  };
   isEditing?: boolean;
 }
 
@@ -27,22 +42,52 @@ export function ArticleForm({ initialData, isEditing = false }: ArticleFormProps
   const router = useRouter();
   const searchParams = useSearchParams();
   const articleId = searchParams.get('id');
+  const { user } = useAuth();
+  const createArticle = useCreateArticle();
+  const { data: categoriesData = [], isLoading: isLoadingCategories } = useCategories();
+  
+  // Handle categories data properly - it might be an object or array
+  const categories = Array.isArray(categoriesData) ? categoriesData : (categoriesData?.data || []);
+
+  const normalizeRegion = (region?: string, customRegion?: string) => {
+    if (!region) {
+      return { region: 'India' as const, customRegion: '' };
+    }
+    if (region === 'India' || region === 'World' || region === 'Custom') {
+      return { region, customRegion: region === 'Custom' ? (customRegion || '') : '' };
+    }
+    return { region: 'Custom' as const, customRegion: region };
+  };
   
   const [formData, setFormData] = useState<ArticleFormData>(
-    initialData || {
+    initialData ? {
+      ...initialData,
+      featuredImage: null,
+      featuredImagePreview: typeof initialData.featuredImage === 'string' ? (initialData.featuredImage || '') : '',
+      tags: typeof initialData.tags === 'string' ? [] : (initialData.tags || []),
+      author: user?.name || initialData.author || '',
+      ...normalizeRegion((initialData as any).region, (initialData as any).customRegion),
+      isBreaking: (initialData as any).isBreaking ?? false,
+    } : {
       title: '',
       slug: '',
-      content: '',
-      category: 'technology',
-      author: '',
-      featuredImage: '',
-      tags: '',
+      excerpt: '',
       description: '',
+      content: '',
+      category: '',
+      author: user?.name || '',
+      featuredImage: null,
+      featuredImagePreview: '',
+      tags: [],
       status: 'draft',
       publishDate: new Date().toISOString().split('T')[0],
+      region: 'India',
+      customRegion: '',
+      isBreaking: false,
     }
   );
 
+  const [tagInput, setTagInput] = useState('');
   const [errors, setErrors] = useState<Partial<ArticleFormData>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isImageUploading, setIsImageUploading] = useState(false);
@@ -70,8 +115,11 @@ export function ArticleForm({ initialData, isEditing = false }: ArticleFormProps
     if (!formData.content.trim()) {
       newErrors.content = 'Content is required';
     }
+    if (!formData.excerpt.trim()) {
+      newErrors.excerpt = 'Excerpt is required';
+    }
     if (!formData.description.trim()) {
-      newErrors.description = 'Description is required';
+      newErrors.description = 'Description/Summary is required';
     }
     if (!formData.author.trim()) {
       newErrors.author = 'Author is required';
@@ -81,18 +129,41 @@ export function ArticleForm({ initialData, isEditing = false }: ArticleFormProps
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleAddTag = () => {
+    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
+      setFormData({
+        ...formData,
+        tags: [...formData.tags, tagInput.trim()],
+      });
+      setTagInput('');
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setFormData({
+      ...formData,
+      tags: formData.tags.filter((tag) => tag !== tagToRemove),
+    });
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsImageUploading(true);
     try {
-      // Simulate file upload - in production, upload to server
+      // Store the actual file object
+      setFormData(prev => ({
+        ...prev,
+        featuredImage: file,
+      }));
+      
+      // Create preview for display
       const reader = new FileReader();
       reader.onload = (event) => {
         setFormData(prev => ({
           ...prev,
-          featuredImage: event.target?.result as string,
+          featuredImagePreview: event.target?.result as string,
         }));
       };
       reader.readAsDataURL(file);
@@ -110,12 +181,27 @@ export function ArticleForm({ initialData, isEditing = false }: ArticleFormProps
 
     setIsLoading(true);
     try {
-      // Simulate API call
-      console.log('Submitting article:', formData);
-      // Simulate success
-      setTimeout(() => {
-        router.push('/dashboard/articles');
-      }, 500);
+      const resolvedRegion = formData.region === 'Custom'
+        ? formData.customRegion.trim()
+        : formData.region;
+
+      // Transform form data to match CreateArticleData interface
+      const createData: CreateArticleData = {
+        title: formData.title,
+        slug: formData.slug,
+        excerpt: formData.excerpt,
+        description: formData.description,
+        content: formData.content,
+        categoryId: formData.category,
+        authorId: user?.id,
+        status: formData.status,
+        tags: formData.tags,
+        featuredImage: formData.featuredImage || undefined,
+        region: resolvedRegion,
+        isBreaking: formData.isBreaking,
+      };
+      await createArticle.mutateAsync(createData);
+      router.push('/dashboard/articles');
     } catch (error) {
       console.error('Error submitting article:', error);
     } finally {
@@ -138,6 +224,24 @@ export function ArticleForm({ initialData, isEditing = false }: ArticleFormProps
     }
   };
 
+  const handleToggleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    const key = name as keyof ArticleFormData;
+    setFormData(prev => ({
+      ...prev,
+      [key]: checked,
+    }));
+  };
+
+  const handleRegionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value as ArticleFormData['region'];
+    setFormData(prev => ({
+      ...prev,
+      region: value,
+      customRegion: value === 'Custom' ? prev.customRegion : '',
+    }));
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Header Section */}
@@ -145,16 +249,7 @@ export function ArticleForm({ initialData, isEditing = false }: ArticleFormProps
         <AdminHeader
           title={isEditing ? 'Edit Article' : 'Create New Article'}
           description={isEditing ? 'Update and manage your article' : 'Write and publish a new article to your site'}
-          add={<button
-              type="button"
-              onClick={() => router.back()}
-              className="px-6 py-2.5 border-2 border-gray-300 text-gray-900 font-bold rounded-lg hover:bg-gray-50 transition-colors cursor-pointer flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Back
-            </button>}
+          back='Back'
         />
 
       <div className="grid grid-cols-3 gap-8">
@@ -178,19 +273,36 @@ export function ArticleForm({ initialData, isEditing = false }: ArticleFormProps
 
           {/* Description */}
           <div className="bg-white rounded-lg shadow p-6">
-            <label className="block text-sm font-bold text-gray-900 mb-3">Article Description *</label>
+            <label className="block text-sm font-bold text-gray-900 mb-3">Article Excerpt *</label>
+            <textarea
+              name="excerpt"
+              value={formData.excerpt}
+              onChange={handleInputChange}
+              placeholder="Brief excerpt of the article..."
+              rows={2}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition resize-none ${
+                errors.excerpt ? 'border-red-500' : 'border-gray-300'
+              }`}
+            />
+            {errors.excerpt && <p className="text-red-600 text-xs mt-2">{errors.excerpt}</p>}
+            <p className="text-xs text-gray-500 mt-2">{formData.excerpt.length}/150 characters</p>
+          </div>
+
+          {/* Description/Summary */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <label className="block text-sm font-bold text-gray-900 mb-3">Article Description/Summary *</label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleInputChange}
-              placeholder="Brief description of the article..."
-              rows={2}
+              placeholder="Detailed summary of the article..."
+              rows={3}
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition resize-none ${
                 errors.description ? 'border-red-500' : 'border-gray-300'
               }`}
             />
             {errors.description && <p className="text-red-600 text-xs mt-2">{errors.description}</p>}
-            <p className="text-xs text-gray-500 mt-2">{formData.description.length}/200 characters</p>
+            <p className="text-xs text-gray-500 mt-2">{formData.description.length}/400 characters</p>
           </div>
 
           {/* Content */}
@@ -214,16 +326,20 @@ export function ArticleForm({ initialData, isEditing = false }: ArticleFormProps
           <div className="bg-white rounded-lg shadow p-6">
             <label className="block text-sm font-bold text-gray-900 mb-3">Featured Image</label>
             <div className="space-y-4">
-              {formData.featuredImage && (
+              {formData.featuredImagePreview && (
                 <div className="relative w-full h-48 rounded-lg overflow-hidden bg-gray-100">
                   <img
-                    src={formData.featuredImage}
+                    src={formData.featuredImagePreview}
                     alt="Featured"
                     className="w-full h-full object-cover"
                   />
                   <button
                     type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, featuredImage: '' }))}
+                    onClick={() => setFormData(prev => ({ 
+                      ...prev, 
+                      featuredImage: null,
+                      featuredImagePreview: ''
+                    }))}
                     className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-lg hover:bg-red-700"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,14 +378,40 @@ export function ArticleForm({ initialData, isEditing = false }: ArticleFormProps
               value={formData.category}
               onChange={handleInputChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none"
+              disabled={isLoadingCategories}
             >
-              <option value="technology">Technology</option>
-              <option value="business">Business</option>
-              <option value="sports">Sports</option>
-              <option value="entertainment">Entertainment</option>
-              <option value="health">Health</option>
-              <option value="science">Science</option>
+              <option value="">Select a category</option>
+              {categories.map((cat: any) => (
+                <option key={cat._id} value={cat._id}>
+                  {cat.name}
+                </option>
+              ))}
             </select>
+          </div>
+
+          {/* Region */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <label className="block text-sm font-bold text-gray-900 mb-3">Region</label>
+            <select
+              name="region"
+              value={formData.region}
+              onChange={handleRegionChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none"
+            >
+              <option value="India">India</option>
+              <option value="World">World</option>
+              <option value="Custom">Custom</option>
+            </select>
+            {formData.region === 'Custom' && (
+              <input
+                type="text"
+                name="customRegion"
+                value={formData.customRegion}
+                onChange={handleInputChange}
+                placeholder="Enter custom region"
+                className="mt-3 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none"
+              />
+            )}
           </div>
 
           {/* Author */}
@@ -279,27 +421,51 @@ export function ArticleForm({ initialData, isEditing = false }: ArticleFormProps
               type="text"
               name="author"
               value={formData.author}
-              onChange={handleInputChange}
-              placeholder="Author name"
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none ${
-                errors.author ? 'border-red-500' : 'border-gray-300'
-              }`}
+              disabled
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed outline-none"
             />
-            {errors.author && <p className="text-red-600 text-xs mt-2">{errors.author}</p>}
+            <p className="text-xs text-gray-500 mt-2">Author is automatically set to your name</p>
           </div>
 
           {/* Tags */}
           <div className="bg-white rounded-lg shadow p-6">
             <label className="block text-sm font-bold text-gray-900 mb-3">Tags</label>
-            <input
-              type="text"
-              name="tags"
-              value={formData.tags}
-              onChange={handleInputChange}
-              placeholder="Comma separated tags"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none"
-            />
-            <p className="text-xs text-gray-500 mt-2">Separate tags with commas</p>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                placeholder="Type a tag and press Enter"
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition"
+              />
+              <button
+                type="button"
+                onClick={handleAddTag}
+                className="px-6 py-3 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 transition-colors cursor-pointer"
+              >
+                Add
+              </button>
+            </div>
+            {formData.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {formData.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center gap-2 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(tag)}
+                      className="hover:text-red-600 transition cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Status */}
@@ -314,6 +480,28 @@ export function ArticleForm({ initialData, isEditing = false }: ArticleFormProps
               <option value="draft">Draft</option>
               <option value="published">Published</option>
             </select>
+          </div>
+
+          {/* Breaking News Toggle */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <label className="block text-sm font-bold text-gray-900 mb-3">Breaking News</label>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  name="isBreaking"
+                  checked={formData.isBreaking}
+                  onChange={handleToggleChange}
+                  className="sr-only peer"
+                />
+                <div className="w-12 h-6 bg-gray-300 rounded-full peer peer-checked:bg-red-600 transition-all"></div>
+                <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform peer-checked:translate-x-6"></div>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-gray-700">Enable breaking tag</span>
+                <p className="text-xs text-gray-500">Show this article in breaking news</p>
+              </div>
+            </label>
           </div>
 
           {/* Publish Date */}

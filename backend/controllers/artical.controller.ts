@@ -10,7 +10,7 @@ import { User } from "../models/user.model";
 
 export class ArticalController {
 
-    // Create artical with image upload
+    // Create article with image upload
     static async createArtical(req: Request) {
         const authenticated = authMiddleware(req);
         if (!authenticated) {
@@ -19,64 +19,75 @@ export class ArticalController {
 
         try {
             const formData = await req.formData();
-            
-            const title = formData.get('title') as string;
-            const content = formData.get('content') as string;
-            const excerpt = formData.get('excerpt') as string;
-            const summary = formData.get('summary') as string;
-            const categoryId = formData.get('categoryId') as string;
-            const authorId = formData.get('authorId') as string;
-            const tags = formData.get('tags') as string;
-            const readTimeMinutes = formData.get('readTimeMinutes') as string;
-            const status = formData.get('status') as string;
+
+            const title = formData.get('title')?.toString().trim();
+            const content = formData.get('content')?.toString();
+            const excerpt = formData.get('excerpt')?.toString();
+            const summary = formData.get('summary')?.toString();
+            const categoryId = formData.get('categoryId')?.toString();
+            const tagsRaw = formData.get('tags')?.toString();
+            const readTimeMinutes = formData.get('readTimeMinutes')?.toString();
+            const status = formData.get('status')?.toString() || 'draft';
             const isFeatured = formData.get('isFeatured') === 'true';
             const isEditorPick = formData.get('isEditorPick') === 'true';
-            const heroImage = formData.get('heroImage') as File;
+            const heroImage = formData.get('heroImage') as File | null;
+
+            // 🔐 Author from auth (NOT request)
+            const authorId = formData.get('authorId')?.toString() || '';
 
             // Validation
-            if (!title || !content || !excerpt || !summary || !categoryId || !authorId) {
-                return error("Title, Content, Excerpt, Summary, Category and Author are required", 400);
+            if (!title || !content || !excerpt || !summary || !categoryId) {
+                return error("Missing required fields", 400);
             }
 
             if (!heroImage || heroImage.size === 0) {
                 return error("Hero image is required", 400);
             }
 
-            // Verify category exists
+            // Validate image type
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!allowedTypes.includes(heroImage.type)) {
+                return error("Invalid image format", 400);
+            }
+
+            // Verify category
             const category = await Category.findById(categoryId);
             if (!category) {
                 return error("Invalid category", 400);
             }
 
-            // Verify author exists
+            // Verify author
             const author = await User.findById(authorId);
             if (!author) {
                 return error("Invalid author", 400);
             }
 
-            // Generate unique slug
+            // Generate slug
             const slug = generateUniqueSlugWithDateTime(title);
 
             // Upload image
-            const bytes = await heroImage.arrayBuffer();
-            const buffer = Buffer.from(bytes);
-            
-            // Create upload directory if it doesn't exist
+            const buffer = Buffer.from(await heroImage.arrayBuffer());
+
             const uploadDir = join(process.cwd(), 'public', 'uploads', 'articles');
             await mkdir(uploadDir, { recursive: true });
-            
-            // Generate unique filename
-            const timestamp = Date.now();
-            const fileExtension = heroImage.name.split('.').pop();
-            const filename = `article-${timestamp}.${fileExtension}`;
+
+            const extension = heroImage.type.split('/')[1];
+            const filename = `article-${Date.now()}.${extension}`;
             const filepath = join(uploadDir, filename);
-            
-            // Save file
+
             await writeFile(filepath, buffer);
             const heroImageUrl = `/uploads/articles/${filename}`;
 
-            // Parse tags
-            const parsedTags = tags ? JSON.parse(tags) : [];
+            // Safe tags parsing
+            let parsedTags: string[] = [];
+            if (tagsRaw) {
+                try {
+                    parsedTags = JSON.parse(tagsRaw);
+                    if (!Array.isArray(parsedTags)) parsedTags = [];
+                } catch {
+                    parsedTags = tagsRaw.split(',').map(t => t.trim());
+                }
+            }
 
             const articalData = {
                 title,
@@ -88,20 +99,23 @@ export class ArticalController {
                 authorId,
                 heroImageUrl,
                 tags: parsedTags,
-                readTimeMinutes: readTimeMinutes ? parseInt(readTimeMinutes) : undefined,
-                status: status || 'draft',
+                readTimeMinutes: readTimeMinutes ? Number(readTimeMinutes) : undefined,
+                status,
                 isFeatured,
                 isEditorPick,
                 publishedAt: status === 'published' ? new Date() : undefined,
             };
 
             const artical = await ArticalService.createArtical(articalData);
+
             return success(artical, 201, "Article created successfully");
+
         } catch (err: any) {
             console.error('Create article error:', err);
-            return error(err.message || "Failed to create article", 500);
+            return error("Failed to create article", 500);
         }
     }
+
 
     // Get all articals
     static async getAllArticals(req: Request) {
@@ -159,15 +173,6 @@ export class ArticalController {
         }
     }
 
-    // Get featured articals
-    static async getFeaturedArticals(req: Request) {
-        try {
-            const articals = await ArticalService.getFeaturedArticals();
-            return success(articals, 200, "Featured articles fetched successfully");
-        } catch (err: any) {
-            return error(err.message || "Failed to fetch articles", 500);
-        }
-    }
 
     // Search articals
     static async searchArticals(req: Request) {

@@ -59,9 +59,17 @@ export class ArticalService {
             .sort({ publishedAt: -1 });
     }   
 
-    static async getFeaturedArticals() {
+    static async getBreakingNews() {
         await connectDB();
-        return await Artical.find({ isFeatured: true, status: 'published' })
+        return await Artical.find({ isBreaking: true, status: 'published' })
+            .populate('categoryId', 'name slug')
+            .populate('authorId', 'name email')
+            .sort({ publishedAt: -1 });
+    }
+
+    static async getRegionalNews() {
+        await connectDB();
+        return await Artical.find({ region: { $exists: true, $ne: null }, status: 'published' })
             .populate('categoryId', 'name slug')
             .populate('authorId', 'name email')
             .sort({ publishedAt: -1 });

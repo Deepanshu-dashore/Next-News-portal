@@ -35,17 +35,17 @@ export function VideoSection() {
       <Container>
         <div className="flex items-center justify-between mb-10">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-[var(--accent-primary)] flex items-center justify-center rounded-full shadow-lg">
+            <div className="w-12 h-12 bg-(--accent-primary) flex items-center justify-center rounded-full shadow-lg">
               <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
             </div>
             <div>
               <h2 className="text-3xl font-black uppercase tracking-tighter leading-none text-white">Featured Video</h2>
-              <p className="text-[var(--accent-primary)] text-[11px] font-black uppercase tracking-[0.3em] mt-1">video news from the field</p>
+              <p className="text-(--accent-primary) text-[11px] font-black uppercase tracking-[0.3em] mt-1">video news from the field</p>
             </div>
           </div>
-          <Link href="/videos" className="text-xs font-black uppercase tracking-widest border-b-2 border-white pb-1 hover:text-[var(--accent-primary)] hover:border-[var(--accent-primary)] transition-all text-white">
+          <Link href="/videos" className="text-xs font-black uppercase tracking-widest border-b-2 border-white pb-1 hover:text-(--accent-primary) hover:border-(--accent-primary) transition-all text-white">
             Browse All Videos
           </Link>
         </div>
@@ -79,7 +79,7 @@ export function VideoSection() {
                     className="object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
                   />
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                     <div className="w-16 h-16 bg-[var(--accent-primary)]/90 rounded-full flex items-center justify-center shadow-2xl backdrop-blur-sm">
+                     <div className="w-16 h-16 bg-(--accent-primary)/90 rounded-full flex items-center justify-center shadow-2xl backdrop-blur-sm">
                         <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M8 5v14l11-7z" />
                         </svg>
@@ -90,7 +90,7 @@ export function VideoSection() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold leading-tight line-clamp-2 text-white group-hover:text-[var(--accent-primary)] transition-colors">
+                  <h3 className="text-lg font-bold leading-tight line-clamp-2 text-white group-hover:text-(--accent-primary) transition-colors">
                     {video.title}
                   </h3>
                   <div className="flex items-center gap-2 mt-3 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
