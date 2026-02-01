@@ -19,7 +19,7 @@ export default function FormHeader({
   colorScheme = 'red' 
 }: FormHeaderProps) {
   return (
-    <div className={`bg-gradient-to-r ${colorClasses[colorScheme].split(' ')[0]} ${colorClasses[colorScheme].split(' ')[1]} p-6`}>
+    <div className={`bg-linear-to-r ${colorClasses[colorScheme].split(' ')[0]} ${colorClasses[colorScheme].split(' ')[1]} p-6`}>
       <h2 className="text-2xl font-black text-white uppercase tracking-tight">
         {title}
       </h2>

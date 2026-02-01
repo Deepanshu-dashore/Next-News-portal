@@ -3,6 +3,7 @@ import { UserService } from "../services/user.servies";
 import { success, error } from "../utlis/response.utlis";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { signToken } from "../lib/jwt";
+import { User } from "../models/user.model";
 
 export class UserController {
 
@@ -60,6 +61,7 @@ export class UserController {
         }
         // Generate JWT token
         const token = signToken({ id: user._id, email: user.email, role: user.role });
+        await UserService.activateUser(user._id.toString());
         const response = success({ 
             id: user._id.toString(),
             email: user.email, 
@@ -78,6 +80,18 @@ export class UserController {
         });
 
         return response;
+    }
+
+    static async profile(req: Request,  { params }: { params: Promise<{ id: string }> }) {
+        const authenticated = authMiddleware(req);  
+        if (!authenticated) {
+            return error("Unauthorized request", 401);
+        }   
+        const user = await UserService.getProfileById((await params).id);
+        if (!user) {
+            return error("User not found", 404);
+        }
+        return success(user, 200, "User profile fetched successfully");
     }
 
     static async getUserById(req: Request,  { params }: { params: Promise<{ id: string }> }) {
@@ -136,6 +150,18 @@ export class UserController {
         return success(deactivatedUser, 200, "User deactivated successfully");
     }
 
+    static async toggleUserStatus(req: Request,  { params }: { params: Promise<{ id: string }> }) {
+        const authenticated = authMiddleware(req);
+        if (!authenticated) {
+            return error("Unauthorized request", 401);
+        }   
+        const user = await UserService.toggleUserStatus((await params).id);
+        if (!user) {
+            return error("User not found", 404);
+        }
+        return success(user, 200, `User ${user.isActive ? 'activated' : 'deactivated'} successfully`);
+    }
+
     static async getAllUsers(req: Request) {
         const authenticated = authMiddleware(req);
         if (!authenticated) {
@@ -144,5 +170,5 @@ export class UserController {
         const users = await UserService.getAllUsers();
         return success(users, 200, "Users fetched successfully");
     }
-
 }
+
