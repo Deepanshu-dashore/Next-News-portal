@@ -1,4 +1,5 @@
 // models/index.ts
 import './user.model.ts';
-import './video.model.ts';
-import './category.model.ts';
+import './videos.model.ts';
+import './catergory.model.ts';
+import './articals.model.ts';
