@@ -128,9 +128,9 @@ export default function SubscribersPage() {
 
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
+        onCancel={() => setIsDeleteModalOpen(false)}
         onConfirm={handleDeleteConfirm}
-        title="Delete Subscriber"
+        itemName="Subscriber"
         message={`Are you sure you want to delete ${subscriberToDelete?.email}? This action cannot be undone.`}
       />
     </div>

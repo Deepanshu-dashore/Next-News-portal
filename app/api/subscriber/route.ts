@@ -1,5 +1,5 @@
+import { createSubscriber, getAllSubscribers } from "@/backend/controllers/subscriber.controller";
 import { NextRequest, NextResponse } from "next/server";
-import { getAllSubscribers, createSubscriber } from "@/backend/controllers/subscriber.controller";
 
 export async function GET() {
   try {

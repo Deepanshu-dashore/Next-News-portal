@@ -145,9 +145,9 @@ export default function Header() {
             </div>
           </div>
 
-          {/* Search Bar Overlay */}
+          {/* Minimalistic Search Bar Overlay */}
           {showSearch && (
-            <div className="py-6 border-t border-gray-100">
+            <div className="py-4 border-t border-gray-100 animate-in fade-in slide-in-from-top-2 duration-300">
               <form 
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -157,24 +157,30 @@ export default function Header() {
                     window.location.href = `/search?q=${encodeURIComponent(query)}`;
                   }
                 }}
-                className="flex gap-3 items-center"
+                className="relative flex items-center max-w-3xl mx-auto"
               >
-                <Input 
-                  type="search"
-                  name="search"
-                  placeholder="Type to search (min 3 characters)..." 
-                  className="bg-gray-50 border-none h-14 text-xl font-bold focus:ring-0 placeholder:text-gray-300 flex-1"
-                  autoFocus
-                  minLength={3}
-                />
-                <button
-                  type="submit"
-                  className="px-6 py-3 bg-linear-to-r from-red-600 to-red-700 text-white font-bold rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all uppercase tracking-wide cursor-pointer flex items-center gap-2"
-                >
+                <div className="absolute left-4 text-gray-400">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  Search
+                </div>
+                <Input 
+                  type="search"
+                  name="search"
+                  placeholder="Search articles... (Press Enter)" 
+                  className="pl-12 bg-gray-50 border-gray-200 h-12 text-lg focus:bg-white focus:border-(--accent-primary) transition-all rounded-full w-full"
+                  autoFocus
+                  minLength={3}
+                />
+                <button 
+                  type="button"
+                  onClick={() => setShowSearch(false)}
+                  className="absolute right-4 text-gray-400 hover:text-gray-950 transition-colors p-1"
+                  aria-label="Close search"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
               </form>
             </div>
