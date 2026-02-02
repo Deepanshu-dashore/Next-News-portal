@@ -213,7 +213,7 @@ function ArticlePreviewContent() {
   );
 }
 
-export default function ArticlePreviewPage() {
+export default function PublicArticlePreviewPage() {
   return (
     <Suspense fallback={
       <Container>

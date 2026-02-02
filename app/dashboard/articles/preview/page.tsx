@@ -22,7 +22,7 @@ interface ArticlePreview {
   tags?: string[];
 }
 
-export default function ArticlePreviewPage() {
+export default function AdminArticlePreviewPage() {
   const searchParams = useSearchParams();
   const [article, setArticle] = useState<ArticlePreview | null>(null);
   const [isLoading, setIsLoading] = useState(true);

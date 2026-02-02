@@ -1,5 +1,5 @@
-import { Container } from '@/components/ui/Container';
-import { getLatestArticles, getEditorPickArticles } from '@/src/lib/api/article.api';
+import { Container } from '@/src/components/ui/Container';
+import { getArticleBySlug, getLatestArticles, getEditorPickArticles } from '@/src/lib/api/article.api';
 import { transformArticle } from '@/src/lib/api/transform';
 import { formatDate } from '@/lib/utils';
 import Image from 'next/image';
@@ -9,22 +9,12 @@ import { EditorPickWidget } from '@/components/widgets/EditorPickWidget';
 import { HighlightCard } from '@/components/news/HighlightCard';
 import Link from 'next/link';
 
-async function getArticleBySlug(slug: string) {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/article/slug/${slug}`, {
-      cache: 'no-store'
-    });
-    if (!response.ok) return null;
-    const data = await response.json();
-    return transformArticle(data.data);
-  } catch (error) {
-    console.error('Error fetching article:', error);
-    return null;
-  }
-}
+// Using the axios-based API function from src/lib/api/article.api.ts
 
 export default async function ArticlePage({ params }: { params : Promise<{ slug: string }> }) {
-   const article = await getArticleBySlug((await params).slug);
+   const { slug } = await params;
+   const articleResponse = await getArticleBySlug(slug).catch(() => null);
+   const article = articleResponse?.success ? transformArticle(articleResponse.data) : null;
    const latestArticles = await getLatestArticles(3).catch(() => []);
    const editorPicks = await getEditorPickArticles(3).catch(() => []);
    const highlightArticle = editorPicks[0] ?? latestArticles[0];
