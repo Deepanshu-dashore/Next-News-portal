@@ -73,23 +73,23 @@ export default function DashboardStats({ stats, isLoading }: { stats?: any, isLo
     },
     {
       title: 'Drafts',
-      value: stats?.totalDrafts || 0,
-      trend: stats?.totalDrafts > 0 ? '+2' : '0',
+      value: (stats?.totalDrafts || 0) + (stats?.totalVideoDrafts || 0),
+      trend: stats?.totalDrafts + stats?.totalVideoDrafts > 0 ? '+2' : '0',
       trendUp: true,
       icon: 'heroicons:document-20-solid',
       gradient: 'bg-teal-500', 
     },
     {
-      title: 'Views',
-      value: (stats?.totalViews || 0).toLocaleString(),
+      title: 'Uploads',
+      value: (stats?.totalViews || 0).toLocaleString(), // Keeping totalViews as the value for the renamed card
       trend: '+8.2%',
       trendUp: true,
-      icon: 'heroicons:eye-20-solid',
+      icon: 'heroicons:arrow-up-tray-20-solid',
       gradient: 'bg-orange-400', 
     },
     {
-      title: 'Subscribers',
-      value: stats?.totalUsers || 0, // Using Total Users as Subscribers for now
+      title: 'Total Users',
+      value: stats?.totalUsers || 0,
       trend: '+136',
       trendUp: true,
       icon: 'heroicons:users-20-solid',

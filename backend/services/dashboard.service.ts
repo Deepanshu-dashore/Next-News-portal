@@ -10,6 +10,7 @@ export const getDashboardStats = async () => {
     const [
       totalArticles,
       totalDrafts,
+      totalVideoDrafts,
       totalVideos,
       totalUsers,
       recentArticles,
@@ -19,7 +20,8 @@ export const getDashboardStats = async () => {
     ] = await Promise.all([
       Artical.countDocuments({ status: 'published' }),
       Artical.countDocuments({ status: 'draft' }),
-      Video.countDocuments(),
+      Video.countDocuments({ status: 'draft' }),
+      Video.countDocuments({ status: 'published' }),
       User.countDocuments(),
       Artical.find().sort({ createdAt: -1 }).limit(5).populate('authorId', 'name').populate('categoryId', 'name').lean(),
       Artical.aggregate([
@@ -33,12 +35,13 @@ export const getDashboardStats = async () => {
     ]);
 
     // Calculate total views from viewCount array length
-    const totalViews = allArticles.reduce((acc, curr) => acc + (curr.viewCount?.length || 0), 0);
+    const totalViews = allArticles.reduce((acc: number, curr: any) => acc + (curr.viewCount?.length || 0), 0);
 
     return {
       stats: {
         totalArticles,
         totalDrafts,
+        totalVideoDrafts,
         totalVideos,
         totalUsers,
         totalViews,
@@ -64,46 +67,49 @@ export const getDashboardStats = async () => {
   }
 };
 
-// Get article performance data for the last 7 days
+// Get article upload performance data for the last 7 days
 export const getContentPerformanceData = async () => {
   try {
     // Calculate date range for last 7 days
     const endDate = new Date();
+    endDate.setHours(23, 59, 59, 999); // End of today
     const startDate = new Date(endDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+    startDate.setHours(0, 0, 0, 0); // Start of 7 days ago
 
-    // Get articles with their creation dates and view counts
+    // Get articles uploaded in the last 7 days
     const articles = await Artical.find(
       { createdAt: { $gte: startDate, $lte: endDate } },
-      'title createdAt viewCount publishedAt'
-    ).sort({ createdAt: -1 }).lean();
+      'title createdAt status'
+    ).sort({ createdAt: 1 }).lean();
 
-    // Group articles by date and calculate views
-    const dateMap = new Map<string, { views: number; articleCount: number }>();
+    // Group articles by date and count uploads
+    const dateMap = new Map<string, { uploads: number; date: Date }>();
 
-    // Initialize last 7 days
+    // Initialize last 7 days with proper date tracking
     for (let i = 6; i >= 0; i--) {
       const date = new Date(endDate.getTime() - i * 24 * 60 * 60 * 1000);
+      date.setHours(0, 0, 0, 0);
       const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-      dateMap.set(dayName, { views: 0, articleCount: 0 });
+      dateMap.set(dayName, { uploads: 0, date });
     }
 
-    // Populate with actual data
+    // Count articles uploaded each day
     articles.forEach((article: any) => {
       const createdDate = new Date(article.createdAt);
       const dayName = createdDate.toLocaleDateString('en-US', { weekday: 'short' });
       
+      // Match by day name for the current week
       if (dateMap.has(dayName)) {
         const current = dateMap.get(dayName)!;
-        current.views += article.viewCount?.length || 0;
-        current.articleCount += 1;
+        current.uploads += 1;
       }
     });
 
-    // Transform to chart format
+    // Transform to chart format (showing article uploads per day)
     const chartData = Array.from(dateMap.entries()).map(([name, data]) => ({
       name,
-      views: data.views,
-      articles: data.articleCount
+      views: data.uploads, // Using 'views' key for chart compatibility, but represents uploads
+      uploads: data.uploads
     }));
 
     return chartData;

@@ -9,6 +9,7 @@ interface ButtonProps {
   onClick?: () => void;
   className?: string;
   type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
 }
 
 export function Button({ 
@@ -18,7 +19,8 @@ export function Button({
   href, 
   onClick, 
   className,
-  type = 'button' 
+  type = 'button',
+  disabled
 }: ButtonProps) {
   const baseStyles = 'inline-flex cursor-pointer items-center justify-center font-bold transition-all rounded-full uppercase tracking-wider';
   
@@ -45,7 +47,7 @@ export function Button({
   }
   
   return (
-    <button type={type} onClick={onClick} className={classes}>
+    <button type={type} onClick={onClick} className={classes} disabled={disabled}>
       {children}
     </button>
   );

@@ -20,8 +20,8 @@ const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#6366F1', '#EC4899', '#8B5CF6'
 export default function DashboardCharts({ chartsData, isLoading }: { chartsData?: any, isLoading?: boolean }) {
   const [timeRange, setTimeRange] = useState('Last 7 Days');
   const [areaData, setAreaData] = useState<any[]>([]);
-  const [totalViews, setTotalViews] = useState(0);
-  const [todayViews, setTodayViews] = useState(0);
+  const [totalUploads, setTotalUploads] = useState(0);
+  const [todayUploads, setTodayUploads] = useState(0);
 
   // Transform backend data for Pie Chart
   // Expected format: [{ name: 'Tech', value: 35 }]
@@ -29,19 +29,19 @@ export default function DashboardCharts({ chartsData, isLoading }: { chartsData?
     ? chartsData.articlesByCategory
     : [{ name: 'No Data', value: 1 }];
 
-  // Process content performance data
+  // Process content performance data (article uploads)
   useEffect(() => {
     if (chartsData?.contentPerformance && chartsData.contentPerformance.length > 0) {
       const data = chartsData.contentPerformance;
       setAreaData(data);
       
-      // Calculate total views
-      const total = data.reduce((sum: number, day: any) => sum + (day.views || 0), 0);
-      setTotalViews(total);
+      // Calculate total uploads
+      const total = data.reduce((sum: number, day: any) => sum + (day.uploads || day.views || 0), 0);
+      setTotalUploads(total);
       
-      // Get today's views (last item in the array)
+      // Get today's uploads (last item in the array)
       const today = data[data.length - 1];
-      setTodayViews(today?.views || 0);
+      setTodayUploads(today?.uploads || today?.views || 0);
     }
   }, [chartsData]);
 
@@ -62,15 +62,15 @@ export default function DashboardCharts({ chartsData, isLoading }: { chartsData?
         <div className="flex items-end justify-between mb-8">
            <div>
               <h3 className="text-lg font-bold text-gray-900 mb-1">Analytics Overview</h3>
-              <p className="text-sm text-gray-500">Content performance (Live Data)</p>
+              <p className="text-sm text-gray-500">Article Upload Flow (Last 7 Days)</p>
            </div>
            <div className="text-right">
               <div className="flex items-center gap-1 justify-end text-emerald-600 font-bold mb-1">
                  <Icon icon="heroicons:arrow-trending-up-20-solid" className="w-5 h-5" />
-                 {totalViews.toLocaleString()}
+                 {totalUploads.toLocaleString()}
               </div>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">
-                 <span className="text-emerald-600">+{todayViews}</span> Today
+                 <span className="text-emerald-600">+{todayUploads}</span> Today
               </p>
            </div>
         </div>

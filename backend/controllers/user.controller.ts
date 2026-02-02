@@ -76,6 +76,8 @@ export class UserController {
             email: user.email, 
             role: user.role,
             name: user.name,
+            bio: user.bio,
+            profilePicture: user.profilePicture,
             lastLogin: updatedUser?.lastLogin || new Date(),
             token 
         }, 200, "Login successful")

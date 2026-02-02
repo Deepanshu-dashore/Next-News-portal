@@ -74,6 +74,14 @@ const sidebarTabs: SidebarTab[] = [
     href: '/dashboard/profile',
     icon: 'lucide:user',
   },
+  {
+    name: 'Subscribers',
+    href: '/dashboard/subscribers',
+    icon: 'lucide:mail',
+    submenu: [
+        { name: 'All Subscribers', href: '/dashboard/subscribers', icon: 'lucide:list' },
+    ]
+  },
 //   {
 //     name: 'Settings',
 //     href: '/dashboard/settings',

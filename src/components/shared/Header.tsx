@@ -8,12 +8,21 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { TopBar } from './TopBar';
 import { useTopCategories } from '@/src/hooks/useCategories';
+import { usePathname } from 'next/navigation';
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const pathname = usePathname();
   const { data: categoriesData } = useTopCategories(5);
   const categories = categoriesData?.data || [];
+
+  const scrollToNewsletter = () => {
+    const element = document.getElementById('newsletter-section');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -53,12 +62,15 @@ export default function Header() {
             </div>
 
             <div className="flex justify-center md:justify-end gap-3">
-              <Button variant="secondary" size="sm">
-                Login
-              </Button>
-              <Button variant="primary" size="sm">
-                Subscribe
-              </Button>
+              {/* Only show "Subscribe" button on the home page */}
+              {pathname === '/' && (
+                <button
+                  onClick={scrollToNewsletter}
+                  className="px-6 py-2 bg-(--accent-primary) text-white font-bold rounded-lg hover:bg-red-700 transition-colors text-xs uppercase tracking-widest cursor-pointer"
+                >
+                  Subscribe
+                </button>
+              )}
             </div>
           </div>
         </Container>

@@ -49,7 +49,7 @@ export default function EditArticlePage() {
     featuredImage: article.featuredImage || '',
     featuredImagePreview: article.featuredImage || '',
     tags: article.tags || [],
-    description: article.description || '',
+    description: (article as any).summary || '',  // Map summary to description
     status: article.status,
     publishDate: article.publishedAt ? new Date(article.publishedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     region: (article as any).region || 'India',

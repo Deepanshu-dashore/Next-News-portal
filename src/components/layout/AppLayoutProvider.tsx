@@ -10,11 +10,11 @@ export default function AppLayoutProvider({ children }: { children: React.ReactN
   // console.log('AppLayoutProvider - Current Path:', currentPath);
   return (
     <>
-    {(currentPath === '/author-login')||!currentPath.includes("dashboard") && <Header />}
+    {(currentPath === '/author-login' || !currentPath.includes("dashboard")) && <Header />}
       <main className="min-h-screen">
         {children}
       </main>
-     {(currentPath === '/author-login')||!currentPath.includes("dashboard") && <Footer />}
+     {(currentPath === '/author-login' || !currentPath.includes("dashboard")) && <Footer />}
     </>
   )
 }

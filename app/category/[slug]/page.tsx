@@ -21,7 +21,6 @@ const categoryMap: Record<string, string> = {
 
 export default async function CategoryPage({ params }:{ params: Promise<{ slug: string }> }) {
   const slug = (await params).slug;
-  const categoryName = categoryMap[slug] || slug;
 
   const articles = await getArticlesByCategorySlug(slug, 15).catch(() => []);
   const editorPicks = await getEditorPickArticles(3).catch(() => []);
@@ -29,6 +28,9 @@ export default async function CategoryPage({ params }:{ params: Promise<{ slug: 
   if (articles.length === 0) {
     return <ArticleNotFound />;
   }
+
+  // Get category name from the first article's category data
+  const categoryName = articles[0]?.categoryId?.name || categoryMap[slug] || slug.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
 
   const featuredArticle = articles[0];
   const remainingArticles = articles.slice(1);
