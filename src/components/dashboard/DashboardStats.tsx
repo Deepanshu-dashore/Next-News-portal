@@ -14,6 +14,7 @@ interface StatCardProps {
 const StatCard = ({ title, value, trend, trendUp, icon, gradient }: StatCardProps) => (
   <div className={`relative overflow-hidden rounded-2xl p-6 ${gradient} text-white shadow-md transition-transform hover:-translate-y-1`}>
     <div className="relative z-10">
+      <div className='flex gap-2'>
       <div className="flex items-start justify-between mb-4">
         <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
           <Icon icon={icon} className="w-6 h-6 text-white" />
@@ -21,8 +22,10 @@ const StatCard = ({ title, value, trend, trendUp, icon, gradient }: StatCardProp
       </div>
       
       <div className="space-y-1">
-        <h3 className="text-3xl font-bold">{value}</h3>
+        <h3 className="text-3xl font-bold text-white">{value}</h3>
         <p className="text-sm font-medium text-white/90">{title}</p>
+      </div>
+
       </div>
 
       <div className="mt-4 flex items-center gap-2 text-sm">
@@ -51,7 +54,7 @@ const StatCard = ({ title, value, trend, trendUp, icon, gradient }: StatCardProp
 export default function DashboardStats({ stats, isLoading }: { stats?: any, isLoading?: boolean }) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="h-40 rounded-2xl bg-gray-100 animate-pulse" />
         ))}
@@ -95,7 +98,7 @@ export default function DashboardStats({ stats, isLoading }: { stats?: any, isLo
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
       {data.map((stat, index) => (
         <StatCard key={index} {...stat} />
       ))}

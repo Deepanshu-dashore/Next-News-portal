@@ -6,12 +6,14 @@ import { useState, useEffect } from 'react';
 import { Container } from '@/components/ui/Container';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { categories } from '@/lib/constants';
 import { TopBar } from './TopBar';
+import { useTopCategories } from '@/src/hooks/useCategories';
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const { data: categoriesData } = useTopCategories(5);
+  const categories = categoriesData?.data || [];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -83,15 +85,39 @@ export default function Header() {
             </div>
 
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-              {categories.map((category) => (
+              <Link
+                href="/"
+                className="px-4 py-1 text-xs font-black uppercase tracking-widest text-gray-600 hover:text-(--accent-primary) transition-colors whitespace-nowrap"
+              >
+                Home
+              </Link>
+              <Link
+                href="/region/india"
+                className="px-4 py-1 text-xs font-black uppercase tracking-widest text-gray-600 hover:text-(--accent-primary) transition-colors whitespace-nowrap"
+              >
+                India
+              </Link>
+              <Link
+                href="/region/world"
+                className="px-4 py-1 text-xs font-black uppercase tracking-widest text-gray-600 hover:text-(--accent-primary) transition-colors whitespace-nowrap"
+              >
+                World
+              </Link>
+              {categories.filter((cat: any) => cat.isActive).slice(0, 5).map((category: any) => (
                 <Link
-                  key={category.id}
-                  href={category.href}
+                  key={category._id}
+                  href={`/category/${category.slug}`}
                   className="px-4 py-1 text-xs font-black uppercase tracking-widest text-gray-600 hover:text-(--accent-primary) transition-colors whitespace-nowrap"
                 >
-                  {category.label}
+                  {category.name}
                 </Link>
               ))}
+              <Link
+                href="/categories"
+                className="px-4 py-1 text-xs font-black uppercase tracking-widest text-(--accent-primary) hover:text-gray-900 transition-colors whitespace-nowrap border border-(--accent-primary) rounded-full"
+              >
+                More
+              </Link>
             </div>
 
             <div className="flex items-center gap-2">

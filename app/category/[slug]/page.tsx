@@ -5,7 +5,7 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { EditorPickWidget } from '@/components/widgets/EditorPickWidget';
 import { NewsletterWidget } from '@/components/widgets/NewsletterWidget';
 import { getArticlesByCategorySlug, getEditorPickArticles } from '@/src/lib/api/article.api';
-import { notFound } from 'next/navigation';
+import ArticleNotFound from '@/app/article/[slug]/not-found';
 
 const categoryMap: Record<string, string> = {
   'tech': 'Technology',
@@ -27,7 +27,7 @@ export default async function CategoryPage({ params }:{ params: Promise<{ slug: 
   const editorPicks = await getEditorPickArticles(3).catch(() => []);
 
   if (articles.length === 0) {
-    notFound();
+    return <ArticleNotFound />;
   }
 
   const featuredArticle = articles[0];

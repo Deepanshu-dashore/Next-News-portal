@@ -111,3 +111,10 @@ export const createBulkCategories = async (categories: CreateCategoryData[]): Pr
     return response.data;
   });
 };
+
+export const getTopCategories = async (count: number = 5): Promise<CategoryResponse> => {
+  return asyncHandler(async () => {
+    const response = await apiClient.get(`/article/category?limit=${count}`);
+    return response.data;
+  });
+};

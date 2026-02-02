@@ -13,29 +13,37 @@ import {
   Cell,
 } from 'recharts';
 import { Icon } from '@iconify/react';
-import { useState } from 'react';
-
-// Mock data for line chart until backend supports time-series
-const areaData = [
-  { name: 'Mon', views: 1200 },
-  { name: 'Tue', views: 1900 },
-  { name: 'Wed', views: 1500 },
-  { name: 'Thu', views: 2800 },
-  { name: 'Fri', views: 2400 },
-  { name: 'Sat', views: 3200 },
-  { name: 'Sun', views: 4580 },
-];
+import { useState, useEffect } from 'react';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#6366F1', '#EC4899', '#8B5CF6'];
 
 export default function DashboardCharts({ chartsData, isLoading }: { chartsData?: any, isLoading?: boolean }) {
   const [timeRange, setTimeRange] = useState('Last 7 Days');
+  const [areaData, setAreaData] = useState<any[]>([]);
+  const [totalViews, setTotalViews] = useState(0);
+  const [todayViews, setTodayViews] = useState(0);
 
   // Transform backend data for Pie Chart
   // Expected format: [{ name: 'Tech', value: 35 }]
   const pieData = chartsData?.articlesByCategory?.length > 0
     ? chartsData.articlesByCategory
     : [{ name: 'No Data', value: 1 }];
+
+  // Process content performance data
+  useEffect(() => {
+    if (chartsData?.contentPerformance && chartsData.contentPerformance.length > 0) {
+      const data = chartsData.contentPerformance;
+      setAreaData(data);
+      
+      // Calculate total views
+      const total = data.reduce((sum: number, day: any) => sum + (day.views || 0), 0);
+      setTotalViews(total);
+      
+      // Get today's views (last item in the array)
+      const today = data[data.length - 1];
+      setTodayViews(today?.views || 0);
+    }
+  }, [chartsData]);
 
   if (isLoading) {
     return (
@@ -47,30 +55,22 @@ export default function DashboardCharts({ chartsData, isLoading }: { chartsData?
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
       {/* Analytics Overview - Area Chart */}
       <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <div className="flex bg-gray-50 p-1 rounded-lg w-fit mb-6">
-             <button className="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 rounded-md shadow-sm">
-                Last 7 Days
-             </button>
-             <button className="px-3 py-1.5 text-xs font-bold text-gray-500 hover:text-gray-900 transition-colors">
-                Last 30 Days
-             </button>
-        </div>
 
         <div className="flex items-end justify-between mb-8">
            <div>
               <h3 className="text-lg font-bold text-gray-900 mb-1">Analytics Overview</h3>
-              <p className="text-sm text-gray-500">Content performance (Mock Data)</p>
+              <p className="text-sm text-gray-500">Content performance (Live Data)</p>
            </div>
            <div className="text-right">
               <div className="flex items-center gap-1 justify-end text-emerald-600 font-bold mb-1">
                  <Icon icon="heroicons:arrow-trending-up-20-solid" className="w-5 h-5" />
-                 4,580
+                 {totalViews.toLocaleString()}
               </div>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">
-                 <span className="text-emerald-600">+432</span> Today
+                 <span className="text-emerald-600">+{todayViews}</span> Today
               </p>
            </div>
         </div>

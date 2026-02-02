@@ -54,11 +54,61 @@ export const getDashboardStats = async () => {
         image: article.heroImageUrl
       })),
       charts: {
-        articlesByCategory
+        articlesByCategory,
+        contentPerformance: await getContentPerformanceData()
       }
     };
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);
     throw new Error('Failed to fetch dashboard stats');
+  }
+};
+
+// Get article performance data for the last 7 days
+export const getContentPerformanceData = async () => {
+  try {
+    // Calculate date range for last 7 days
+    const endDate = new Date();
+    const startDate = new Date(endDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    // Get articles with their creation dates and view counts
+    const articles = await Artical.find(
+      { createdAt: { $gte: startDate, $lte: endDate } },
+      'title createdAt viewCount publishedAt'
+    ).sort({ createdAt: -1 }).lean();
+
+    // Group articles by date and calculate views
+    const dateMap = new Map<string, { views: number; articleCount: number }>();
+
+    // Initialize last 7 days
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(endDate.getTime() - i * 24 * 60 * 60 * 1000);
+      const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+      dateMap.set(dayName, { views: 0, articleCount: 0 });
+    }
+
+    // Populate with actual data
+    articles.forEach((article: any) => {
+      const createdDate = new Date(article.createdAt);
+      const dayName = createdDate.toLocaleDateString('en-US', { weekday: 'short' });
+      
+      if (dateMap.has(dayName)) {
+        const current = dateMap.get(dayName)!;
+        current.views += article.viewCount?.length || 0;
+        current.articleCount += 1;
+      }
+    });
+
+    // Transform to chart format
+    const chartData = Array.from(dateMap.entries()).map(([name, data]) => ({
+      name,
+      views: data.views,
+      articles: data.articleCount
+    }));
+
+    return chartData;
+  } catch (error) {
+    console.error('Error fetching content performance data:', error);
+    return [];
   }
 };

@@ -35,9 +35,11 @@ export default function DashboardProfile({ stats }: { stats?: any }) {
                   className="w-full h-full object-cover"
                 />
              ) : (
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 text-3xl font-bold">
-                  {user?.name?.charAt(0).toUpperCase()}
-                </div>
+                <img 
+                  src={"/avatar-placeholder.png"} 
+                  alt={user?.name || "Profile"} 
+                  className="w-full h-full object-cover"
+                />
              )}
           </div>
           {/* Active Badge */}
@@ -47,9 +49,9 @@ export default function DashboardProfile({ stats }: { stats?: any }) {
         </div>
 
         <h2 className="mt-3 text-xl font-bold text-gray-900">{user?.name}</h2>
-        <div className="mt-1 inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 border border-green-200 rounded-full text-xs font-bold uppercase tracking-wide">
-          <div className="w-1.5 h-1.5 rounded-full bg-green-600 animate-pulse" />
-          Active
+        <div className="mt-1 inline-flex items-center gap-1.5 px-3 py-1 bg-gray-200 text-gray-700 border border-gray-200 rounded-full text-xs font-bold uppercase tracking-wide">
+          <div className="w-1.5 h-1.5 rounded-sm bg-gray-200 animate-pulse" />
+          {user?.role}
         </div>
 
         {/* User Stats */}

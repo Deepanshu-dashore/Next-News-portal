@@ -65,9 +65,9 @@ export default function DashboardPage() {
   return (
     <div className="bg-gray-50/50 min-h-full pb-12">
       {/* Content */}
-      <Container className="py-8 max-w-[1600px]">
+      <div className="">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between">
            <AdminHeader
              title="Dashboard"
              description={`Welcome back, ${user?.name}`}
@@ -96,9 +96,9 @@ export default function DashboardPage() {
            </div>
         </div>
 
-        <div className="grid grid-cols-12 gap-8 w-full">
+        <div className="grid grid-cols-12 gap-4 w-full">
           {/* Main Content Area */}
-          <div className="col-span-12 xl:col-span-9 space-y-8">
+          <div className="col-span-12 xl:col-span-9 space-y-4">
             {/* Stats Cards */}
             <DashboardStats stats={statsData?.stats} isLoading={isLoading} />
 
@@ -110,7 +110,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Right Sidebar */}
-          <div className="col-span-12 xl:col-span-3 space-y-8">
+          <div className="col-span-12 xl:col-span-3 space-y-4">
             <DashboardProfile stats={statsData?.stats} />
 
             {/* Quick Actions / Mini Widgets */}
@@ -150,7 +150,7 @@ export default function DashboardPage() {
              </div>
           </div>
         </div>
-      </Container>
+      </div>
     </div>
   );
 }

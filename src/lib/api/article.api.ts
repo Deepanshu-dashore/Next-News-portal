@@ -185,3 +185,10 @@ export const getTopHighlights = async (): Promise<any[]> => {
         return transformArticles(response.data.data);
     });
 };
+
+export const getTopCategories = async (count: number = 5): Promise<ArticleCategory[]> => {
+  return asyncHandler(async () => {
+    const response = await apiClient.get(`/article/category?limit=${count}`);
+    return response.data;
+  });
+};

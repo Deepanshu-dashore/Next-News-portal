@@ -31,6 +31,7 @@ export class ArticalController {
             const isFeatured = formData.get('isFeatured') === 'true';
             const isEditorPick = formData.get('isEditorPick') === 'true';
             const isBreaking = formData.get('isBreaking') === 'true';
+            const region = formData.get('region')?.toString();
             const heroImage = formData.get('heroImage') as File | null;
             const authorId = formData.get('authorId')?.toString() || '';
 
@@ -115,6 +116,7 @@ export class ArticalController {
                 isFeatured,
                 isEditorPick,
                 isBreaking,
+                region,
                 publishedAt: status === 'published' ? new Date() : undefined,
             };
 
@@ -301,6 +303,7 @@ export class ArticalController {
             const isFeatured = formData.get('isFeatured');
             const isEditorPick = formData.get('isEditorPick');
             const isBreaking = formData.get('isBreaking');
+            const region = formData.get('region') as string;
             const heroImage = formData.get('heroImage') as File;
 
             // Update fields if provided
@@ -315,6 +318,7 @@ export class ArticalController {
             if (isFeatured !== null) updateData.isFeatured = isFeatured === 'true';
             if (isEditorPick !== null) updateData.isEditorPick = isEditorPick === 'true';
             if (isBreaking !== null) updateData.isBreaking = isBreaking === 'true';
+            if (region) updateData.region = region;
 
             // Handle image upload if new image provided
             if (heroImage && heroImage.size > 0) {

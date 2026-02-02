@@ -108,3 +108,10 @@ export const useBulkCreateCategories = () => {
     },
   });
 };
+
+export const useTopCategories = (count: number = 5) => {
+  return useQuery<categoryApi.CategoryResponse>({
+    queryKey: [...categoryKeys.lists(), 'top', count],
+    queryFn: () => categoryApi.getTopCategories(count),
+  });
+};
