@@ -1,9 +1,12 @@
 import type { Article } from './article.api';
 
 // Transform API article to frontend article format
-export function transformArticle(article: Article) {
+export function transformArticle(article: Article | any) {
+  if (!article) return null as any;
+  const data = article._doc || article;
+  const idValue = data._id || data.id || article._id || article.id;
   return {
-    id: article._id,
+    id: idValue ? idValue.toString() : Math.random().toString(36).substr(2, 9),
     title: article.title,
     slug: article.slug,
     excerpt: article.excerpt,
@@ -15,7 +18,7 @@ export function transformArticle(article: Article) {
     categorySlug: (article.categoryId as any)?.slug || (article as any).category?.slug || '',
     author: {
       name: (article.authorId as any)?.name || (article as any).author?.name || 'Unknown Author',
-      avatar: '/avatar-placeholder.jpg',
+      avatar: '/avatar-placeholder.png',
     },
     publishedAt: article.publishedAt || article.createdAt,
     createdAt: article.createdAt,

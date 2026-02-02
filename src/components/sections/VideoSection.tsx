@@ -41,7 +41,7 @@ export function VideoSection() {
               </svg>
             </div>
             <div>
-              <h2 className="text-3xl font-black uppercase tracking-tighter leading-none text-white">Featured Video</h2>
+              <h2 className="text-3xl font-black uppercase tracking-tighter leading-none text-white">Videos</h2>
               <p className="text-(--accent-primary) text-[11px] font-black uppercase tracking-[0.3em] mt-1">video news from the field</p>
             </div>
           </div>

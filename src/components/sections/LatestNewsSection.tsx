@@ -16,11 +16,17 @@ export function LatestNewsSection({ articles }: LatestNewsSectionProps) {
       </div>
 
       <div className="space-y-1">
-        {articles.map((article, index) => (
-          <div key={article.id} className="bg-white border-b border-gray-100 last:border-b-0">
-            <NewsCard article={article} />
+        {articles && articles.length > 0 ? (
+          articles.map((article, index) => (
+            <div key={article.id} className="bg-white border-b border-gray-100 last:border-b-0">
+              <NewsCard article={article} />
+            </div>
+          ))
+        ) : (
+          <div className="py-20 text-center border border-dashed border-gray-200 rounded-2xl">
+            <p className="text-gray-400 font-medium">No bulletins available at the moment.</p>
           </div>
-        ))}
+        )}
       </div>
     </section>
   );

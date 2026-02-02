@@ -39,6 +39,19 @@ export class ArticalService {
             .sort({ publishedAt: -1 });
     }
 
+    static async getArticalsByCategorySlug(slug: string) {
+        await connectDB();
+        const Category = (await import('../models/catergory.model')).Category;
+        const category = await Category.findOne({ slug });
+        if (!category) {
+            return [];
+        }
+        return await Artical.find({ categoryId: category._id, status: 'published' })
+            .populate('categoryId', 'name slug')
+            .populate('authorId', 'name email')
+            .sort({ publishedAt: -1 });
+    }
+
     static async updateArtical(id: string, data: any) {
         await connectDB();
         return await Artical.findByIdAndUpdate(id, data, { new: true })
@@ -74,17 +87,35 @@ export class ArticalService {
 
     static async getBreakingNews() {
         await connectDB();
-        return await Artical.find({ isBreaking: true, status: 'published' })
+        const breaking = await Artical.find({ isBreaking: true, status: 'published' })
             .populate('categoryId', 'name slug')
             .populate('authorId', 'name email')
             .sort({ publishedAt: -1 });
+
+        if (!breaking || breaking.length === 0) {
+            return await Artical.find({ status: 'published' })
+                .populate('categoryId', 'name slug')
+                .populate('authorId', 'name email')
+                .sort({ publishedAt: -1 })
+                .limit(10);
+        }
+        return breaking;
     }
 
     static async getBreakingNewsTitles() {
         await connectDB();
-        return await Artical.find({ isBreaking: true, status: 'published' })
+        const breaking = await Artical.find({ isBreaking: true, status: 'published' })
             .select('title slug')
             .sort({ publishedAt: -1 });
+        
+        // Fallback to latest articles if no breaking news found
+        if (!breaking || breaking.length === 0) {
+            return await Artical.find({ status: 'published' })
+                .select('title slug')
+                .sort({ publishedAt: -1 })
+                .limit(10);
+        }
+        return breaking;
     }
 
     static async getRegionalNews() {
@@ -93,6 +124,14 @@ export class ArticalService {
             .populate('categoryId', 'name slug')
             .populate('authorId', 'name email')
             .sort({ publishedAt: -1 });
+    }
+
+    static async getLatestArticlesTitles(limit = 20) {
+        await connectDB();
+        return await Artical.find({ status: 'published' })
+            .select('title slug')
+            .sort({ publishedAt: -1 })
+            .limit(limit);
     }
 
     static async getArticalsByStatus(status: string) {
@@ -215,11 +254,20 @@ export class ArticalService {
 
     static async getEditorPicks(limit = 4) {
         await connectDB();
-        return await Artical.find({ isEditorPick: true, status: 'published' })
+        const picks = await Artical.find({ isEditorPick: true, status: 'published' })
             .populate('categoryId', 'name slug')
             .populate('authorId', 'name email')
             .sort({ publishedAt: -1 })
             .limit(limit);
+
+        if (!picks || picks.length === 0) {
+            return await Artical.find({ status: 'published' })
+                .populate('categoryId', 'name slug')
+                .populate('authorId', 'name email')
+                .sort({ publishedAt: -1 })
+                .limit(limit);
+        }
+        return picks;
     }
 
     static async searchArticals(query: string) {

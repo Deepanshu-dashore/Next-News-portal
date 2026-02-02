@@ -36,10 +36,6 @@ export function NewsCard({ article, variant = 'default' }: NewsCardProps) {
              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-muted)">
                {formatDate(article.publishedAt)}
              </span>
-             <span className="w-1 h-1 rounded-full bg-gray-300" />
-             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-(--accent-primary)">
-               {article.readTime || '5'} Min Read
-             </span>
           </div>
           
           <h3 className="font-black text-xl md:text-2xl text-(--text-primary) mb-3 leading-tight group-hover:text-(--accent-primary) transition-colors tracking-tighter">

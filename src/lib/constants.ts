@@ -13,8 +13,8 @@ export const colors = {
 // Categories
 export const categories = [
   { id: 'home', label: 'Home', href: '/' },
-  { id: 'india', label: 'India', href: '/category/india' },
-  { id: 'world', label: 'World', href: '/category/world' },
+  { id: 'india', label: 'India', href: '/region/india' },
+  { id: 'world', label: 'World', href: '/region/world' },
   { id: 'tech', label: 'Technology', href: '/category/tech' },
   { id: 'business', label: 'Business', href: '/category/business' },
   { id: 'sports', label: 'Sports', href: '/category/sports' },

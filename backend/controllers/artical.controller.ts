@@ -30,6 +30,7 @@ export class ArticalController {
             const status = formData.get('status')?.toString() || 'draft';
             const isFeatured = formData.get('isFeatured') === 'true';
             const isEditorPick = formData.get('isEditorPick') === 'true';
+            const isBreaking = formData.get('isBreaking') === 'true';
             const heroImage = formData.get('heroImage') as File | null;
             const authorId = formData.get('authorId')?.toString() || '';
 
@@ -113,6 +114,7 @@ export class ArticalController {
                 status,
                 isFeatured,
                 isEditorPick,
+                isBreaking,
                 publishedAt: status === 'published' ? new Date() : undefined,
             };
 
@@ -173,6 +175,16 @@ export class ArticalController {
         }
     }
 
+    // Get articals by category slug
+    static async getArticalsByCategorySlug(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+        try {
+            const articals = await ArticalService.getArticalsByCategorySlug((await params).slug);
+            return success(articals, 200, "Articles fetched successfully");
+        } catch (err: any) {
+            return error(err.message || "Failed to fetch articles", 500);
+        }
+    }
+
     // Get all articles with category (Dynamic Category Load)
     static async getAllArticalWithCategory(req: Request) {
         try {
@@ -205,6 +217,28 @@ export class ArticalController {
         }
     }
 
+    // Get breaking news titles (for ticker)
+    static async getBreakingNewsTitles(req: Request) {
+        try {
+            const articals = await ArticalService.getBreakingNewsTitles();
+            return success(articals, 200, "Breaking news titles fetched successfully");
+        } catch (err: any) {
+            return error(err.message || "Failed to fetch breaking news titles", 500);
+        }
+    }
+
+    // Get latest titles (for footer)
+    static async getLatestArticlesTitles(req: Request) {
+        try {
+            const url = new URL(req.url);
+            const limit = parseInt(url.searchParams.get('limit') || '20');
+            const articals = await ArticalService.getLatestArticlesTitles(limit);
+            return success(articals, 200, "Latest article titles fetched successfully");
+        } catch (err: any) {
+            return error(err.message || "Failed to fetch latest article titles", 500);
+        }
+    }
+
     // Get published articals with filters
     static async getPublishedArticals(req: Request) {
         try {
@@ -212,7 +246,7 @@ export class ArticalController {
             const filters = {
                 isFeatured: url.searchParams.get('featured') === 'true',
                 isEditorPick: url.searchParams.get('editorPick') === 'true',
-                isBreaking: url.searchParams.get('breaking') === 'true',
+                isBreaking: url.searchParams.get('breaking') === 'true' || url.searchParams.get('isBreaking') === 'true',
                 region: url.searchParams.get('region'),
                 limit: url.searchParams.get('limit'),
             };
@@ -266,6 +300,7 @@ export class ArticalController {
             const status = formData.get('status') as string;
             const isFeatured = formData.get('isFeatured');
             const isEditorPick = formData.get('isEditorPick');
+            const isBreaking = formData.get('isBreaking');
             const heroImage = formData.get('heroImage') as File;
 
             // Update fields if provided
@@ -279,6 +314,7 @@ export class ArticalController {
             if (status) updateData.status = status;
             if (isFeatured !== null) updateData.isFeatured = isFeatured === 'true';
             if (isEditorPick !== null) updateData.isEditorPick = isEditorPick === 'true';
+            if (isBreaking !== null) updateData.isBreaking = isBreaking === 'true';
 
             // Handle image upload if new image provided
             if (heroImage && heroImage.size > 0) {

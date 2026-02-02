@@ -20,9 +20,9 @@ import {
 
 export default async function Home() {
   // Fetch data from API
-  const trendingArticlesRaw = await getTrendingArticles(10).catch(() => []); // Fetch more to allow for filtering
-  const latestArticlesRaw = await getLatestArticles(10).catch(() => []);
-  const editorPicksRaw = await getEditorPickArticles(5).catch(() => []);
+  const trendingArticlesRaw = await getTrendingArticles(20).catch(() => []); // Fetch more to allow for filtering
+  const latestArticlesRaw = await getLatestArticles(20).catch(() => []);
+  const editorPicksRaw = await getEditorPickArticles(10).catch(() => []);
   const topHighlightsRaw = await getTopHighlights().catch(() => []);
 
   // Deduplication Logic
@@ -39,15 +39,31 @@ export default async function Home() {
   highlights.forEach((a: any) => shownIds.add(a.id));
 
   // 3. Latest News
-  const latestArticles = latestArticlesRaw
+  // console.log('Deduplication - Current Shown IDs:', Array.from(shownIds));
+  // console.log('Deduplication - Raw Latest IDs:', latestArticlesRaw.map((a: any) => a.id));
+  
+  let latestArticles = latestArticlesRaw
     .filter((a: any) => !shownIds.has(a.id))
     .slice(0, 5);
+  
+  // Soft Fallback: If filtering leaves the section empty but we have data, show the raw articles
+  if (latestArticles.length === 0 && latestArticlesRaw.length > 0) {
+    console.log('Deduplication - Fallback triggered for Latest News (no unique articles left)');
+    latestArticles = latestArticlesRaw.slice(0, 5);
+  }
+  
+  console.log('Latest Articles Final Count:', latestArticles.length);
   latestArticles.forEach((a: any) => shownIds.add(a.id));
 
   // 4. Editor's Picks
-  const editorPicks = editorPicksRaw
+  let editorPicks = editorPicksRaw
     .filter((a: any) => !shownIds.has(a.id))
     .slice(0, 3);
+    
+  if (editorPicks.length === 0 && editorPicksRaw.length > 0) {
+    console.log('Deduplication - Fallback triggered for Editor Picks');
+    editorPicks = editorPicksRaw.slice(0, 3);
+  }
   
   const breakingSpotlight = latestArticles[0];
 
@@ -58,7 +74,7 @@ export default async function Home() {
   return (
     <div className="pb-20">
       {/* Breaking News Ticker */}
-      <BreakingNews articles={latestArticles} />
+      <BreakingNews />
 
       <Container>
         <div className="py-8 md:py-12">

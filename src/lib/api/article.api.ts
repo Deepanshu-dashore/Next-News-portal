@@ -152,16 +152,9 @@ export const getTrendingArticles = async (count: number = 4): Promise<any[]> => 
 
 export const getArticlesByCategorySlug = async (categorySlug: string, count?: number): Promise<any[]> => {
   return asyncHandler(async () => {
-    // Note: Ideally we should have a backend route for this, but for now we'll fetch all and filter or add a backend route.
-    // Since backend filtering by slug isn't added yet, we'll keep client side filter for slug for minimal risk,
-    // OR we could add it to backend. Let's stick to client filter for Slugs to avoid breaking if backend lookup is heavy.
-    // Actually, creating a route `article/category/slug/:slug` would be better.
-    // but the user asked to fix `article.api.ts`, so let's optimize what we can.
-    const response = await apiClient.get('/article/published');
-    const filtered = response.data.data.filter(
-      (article: Article) => article.categoryId?.slug?.toLowerCase() === categorySlug.toLowerCase()
-    );
-    const sliced = count ? filtered.slice(0, count) : filtered;
+    const response = await apiClient.get(`/article/category/slug/${categorySlug}`);
+    const articles = response.data.data || [];
+    const sliced = count ? articles.slice(0, count) : articles;
     return transformArticles(sliced);
   });
 };
