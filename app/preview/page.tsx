@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -22,7 +23,7 @@ interface ArticlePreview {
   tags?: string[];
 }
 
-export default function ArticlePreviewPage() {
+function ArticlePreviewContent() {
   const searchParams = useSearchParams();
   const [article, setArticle] = useState<ArticlePreview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -210,5 +211,19 @@ export default function ArticlePreviewPage() {
         </div>
       </div>
     </Container>
+  );
+}
+
+export default function ArticlePreviewPage() {
+  return (
+    <Suspense fallback={
+      <Container>
+        <div className="flex items-center justify-center h-96">
+          <div className="text-gray-500">Loading preview...</div>
+        </div>
+      </Container>
+    }>
+      <ArticlePreviewContent />
+    </Suspense>
   );
 }

@@ -6,15 +6,21 @@ import Header from "../shared/Header";
 
 export default function AppLayoutProvider({ children }: { children: React.ReactNode }) {
 
-  const currentPath = usePathname();
-  // console.log('AppLayoutProvider - Current Path:', currentPath);
+  const pathname = usePathname();
+
+  const hideLayout =
+    pathname === '/author-login' ||
+    pathname.startsWith('/dashboard');
+
   return (
     <>
-    {(currentPath === '/author-login' || !currentPath.includes("dashboard")) && <Header />}
+      {!hideLayout && <Header />}
+
       <main className="min-h-screen">
         {children}
       </main>
-     {(currentPath === '/author-login' || !currentPath.includes("dashboard")) && <Footer />}
+
+      {!hideLayout && <Footer />}
     </>
-  )
+  );
 }
