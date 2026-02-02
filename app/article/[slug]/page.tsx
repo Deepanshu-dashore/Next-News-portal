@@ -34,9 +34,9 @@ export default async function ArticlePage({ params }: { params : Promise<{ slug:
   }
 
   return (
-      <Container>
+      <Container className="mt-8 mb-16">
             {/* Breadcrumb */}
-            <nav className="flex items-center gap-2 py-3 text-sm text-gray-600 mb-8">
+            <nav className="flex items-center gap-2 text-sm text-gray-600 mb-8">
                <Link href="/" className="hover:text-(--accent-primary)">Home</Link>
                <span>/</span>
                <Link href="/" className="hover:text-(--accent-primary)">Articles</Link>
