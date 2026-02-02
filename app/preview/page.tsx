@@ -1,11 +1,10 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
-import { Container } from '@/components/ui/Container';
+import { Container } from '@/src/components/ui/Container';
 
 interface ArticlePreview {
   title: string;
