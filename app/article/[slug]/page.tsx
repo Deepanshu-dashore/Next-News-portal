@@ -1,5 +1,6 @@
 import { Container } from '@/components/ui/Container';
-import { getLatestArticles, getEditorPickArticles } from '@/lib/mockData';
+import { getLatestArticles, getEditorPickArticles } from '@/src/lib/api/article.api';
+import { transformArticle } from '@/src/lib/api/transform';
 import { formatDate } from '@/lib/utils';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -10,12 +11,12 @@ import Link from 'next/link';
 
 async function getArticleBySlug(slug: string) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/artical/slug/${slug}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/article/slug/${slug}`, {
       cache: 'no-store'
     });
     if (!response.ok) return null;
     const data = await response.json();
-    return data.data;
+    return transformArticle(data.data);
   } catch (error) {
     console.error('Error fetching article:', error);
     return null;
@@ -24,8 +25,8 @@ async function getArticleBySlug(slug: string) {
 
 export default async function ArticlePage({ params }: { params : Promise<{ slug: string }> }) {
    const article = await getArticleBySlug((await params).slug);
-   const latestArticles = getLatestArticles(3);
-   const editorPicks = getEditorPickArticles(3);
+   const latestArticles = await getLatestArticles(3).catch(() => []);
+   const editorPicks = await getEditorPickArticles(3).catch(() => []);
    const highlightArticle = editorPicks[0] ?? latestArticles[0];
 
   if (!article) {

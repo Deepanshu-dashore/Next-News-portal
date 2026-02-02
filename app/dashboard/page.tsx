@@ -3,117 +3,154 @@
 import { useAuth } from '@/src/contexts/AuthContext';
 import { Container } from '@/components/ui/Container';
 import AdminHeader from '@/src/components/dashboard/AdminHeader';
+import DashboardStats from '@/src/components/dashboard/DashboardStats';
+import DashboardCharts from '@/src/components/dashboard/DashboardCharts';
+import DashboardProfile from '@/src/components/dashboard/DashboardProfile';
+import RecentArticles from '@/src/components/dashboard/RecentArticles';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const [statsData, setStatsData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/api/dashboard/stats');
+        const result = await response.json();
+        if (result.success && isMounted) {
+          setStatsData(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleSearch = () => {
+    const query = searchQuery.trim();
+    if (!query) return;
+
+    // 3 word max limit validation
+    const wordCount = query.split(/\s+/).length;
+    if (wordCount > 3) {
+      toast.error('Search allows a maximum of 3 words');
+      return;
+    }
+
+    router.push(`/dashboard/search?q=${encodeURIComponent(query)}`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50/50 min-h-full pb-12">
+      {/* Content */}
+      <Container className="py-8 max-w-[1600px]">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+           <AdminHeader
+             title="Dashboard"
+             description={`Welcome back, ${user?.name}`}
+           />
+           <div className="relative flex items-center gap-2">
+             <div className="relative">
+               <input 
+                 type="text" 
+                 value={searchQuery}
+                 onChange={(e) => setSearchQuery(e.target.value)}
+                 onKeyDown={handleKeyDown}
+                 placeholder="Search (max 3 words)..." 
+                 className="pl-4 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl text-sm w-72 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm"
+               />
+               {/* Moved icon to right as a button or just keep it clean? User asked for button with magnifying glass icon. */}
+             </div>
+             <button
+                onClick={handleSearch}
+                className="p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors shadow-sm cursor-pointer flex items-center justify-center"
+                title="Search"
+             >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+             </button>
+           </div>
+        </div>
 
-        {/* Content */}
-        <Container className="py-12">
-          <AdminHeader
-            title="Dashboard"
-            description={`Welcome back, ${user?.name}`}
-          />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-12 gap-8 w-full">
+          {/* Main Content Area */}
+          <div className="col-span-12 xl:col-span-9 space-y-8">
             {/* Stats Cards */}
-            <div className="bg-white rounded-xl shadow-md p-6 border-2 border-gray-200 hover:border-(--accent-primary) transition-colors">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-900">Total Articles</h3>
-                <div className="w-12 h-12 bg-(--accent-primary)/10 rounded-lg flex items-center justify-center">
-                  <svg className="w-6 h-6 text-(--accent-primary)" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                    <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-              <p className="text-3xl font-black text-gray-900">24</p>
-              <p className="text-sm text-gray-600 mt-1">+3 this week</p>
-            </div>
+            <DashboardStats stats={statsData?.stats} isLoading={isLoading} />
 
-            <div className="bg-white rounded-xl shadow-md p-6 border-2 border-gray-200 hover:border-(--accent-primary) transition-colors">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-900">Total Videos</h3>
-                <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                  <svg className="w-6 h-6 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
-                  </svg>
-                </div>
-              </div>
-              <p className="text-3xl font-black text-gray-900">12</p>
-              <p className="text-sm text-gray-600 mt-1">+1 this week</p>
-            </div>
+            {/* Analytics Section */}
+            <DashboardCharts chartsData={statsData?.charts} isLoading={isLoading} />
 
-            <div className="bg-white rounded-xl shadow-md p-6 border-2 border-gray-200 hover:border-(--accent-primary) transition-colors">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-900">Categories</h3>
-                <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center">
-                  <svg className="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
-                  </svg>
-                </div>
-              </div>
-              <p className="text-3xl font-black text-gray-900">8</p>
-              <p className="text-sm text-gray-600 mt-1">Active categories</p>
-            </div>
+            {/* Recent Articles Section */}
+            <RecentArticles articles={statsData?.recentArticles} isLoading={isLoading} />
           </div>
 
-          {/* Quick Actions */}
-          <div className="mt-12">
-            <h2 className="text-xl font-black text-gray-900 mb-6 uppercase tracking-tight">Quick Actions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Link
-                href="/dashboard/articles/new"
-                className="p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-(--accent-primary) hover:shadow-lg transition-all text-center group"
-              >
-                <div className="w-12 h-12 bg-(--accent-primary)/10 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                  <svg className="w-6 h-6 text-(--accent-primary)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                </div>
-                <h3 className="font-bold text-gray-900">New Article</h3>
-              </Link>
+          {/* Right Sidebar */}
+          <div className="col-span-12 xl:col-span-3 space-y-8">
+            <DashboardProfile stats={statsData?.stats} />
 
-              <Link
-                href="/dashboard/videos/new"
-                className="p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-(--accent-primary) hover:shadow-lg transition-all text-center group"
-              >
-                <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                  <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <h3 className="font-bold text-gray-900">Upload Video</h3>
-              </Link>
+            {/* Quick Actions / Mini Widgets */}
+             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h3 className="font-bold text-gray-900 mb-4">Quick Actions</h3>
+                <div className="space-y-3">
+                   <Link href="/dashboard/articles/new" className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer group">
+                      <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
+                      </div>
+                      <div>
+                         <p className="font-bold text-gray-900 text-sm">Create New Article</p>
+                         <p className="text-xs text-gray-500">Write and publish content</p>
+                      </div>
+                   </Link>
+                   
+                   <Link href="/dashboard/videos/new" className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer group">
+                      <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors">
+                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                      </div>
+                      <div>
+                         <p className="font-bold text-gray-900 text-sm">Upload Video</p>
+                         <p className="text-xs text-gray-500">Share video content</p>
+                      </div>
+                   </Link>
 
-              <Link
-                href="/dashboard/categories"
-                className="p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-(--accent-primary) hover:shadow-lg transition-all text-center group"
-              >
-                <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                  <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                  </svg>
+                   <Link href="/dashboard/users/new" className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer group">
+                      <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                      </div>
+                      <div>
+                         <p className="font-bold text-gray-900 text-sm">Add New User</p>
+                         <p className="text-xs text-gray-500">Invite team members</p>
+                      </div>
+                   </Link>
                 </div>
-                <h3 className="font-bold text-gray-900">Manage Categories</h3>
-              </Link>
-
-              <Link
-                href="/"
-                className="p-6 bg-white border-2 border-gray-200 rounded-xl hover:border-(--accent-primary) hover:shadow-lg transition-all text-center group"
-              >
-                <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                  <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                  </svg>
-                </div>
-                <h3 className="font-bold text-gray-900">View Site</h3>
-              </Link>
-            </div>
+             </div>
           </div>
-        </Container>
-      </div>
+        </div>
+      </Container>
+    </div>
   );
 }

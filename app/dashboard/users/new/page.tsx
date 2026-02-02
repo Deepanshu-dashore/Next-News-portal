@@ -1,6 +1,7 @@
 'use client';
 
 import ProtectedRoute from '@/src/components/auth/ProtectedRoute';
+import AdminHeader from '@/src/components/dashboard/AdminHeader';
 import { UserForm } from '@/src/components/dashboard/UserForm';
 import AppLayoutProvider from '@/src/components/layout/AppLayoutProvider';
 import { useUsers, UserFormData } from '@/src/hooks/useUsers';
@@ -24,7 +25,12 @@ export default function NewUserPage() {
   return (
     <ProtectedRoute allowedRoles={['admin', 'editor']}>
       <AppLayoutProvider>
-        <div className="max-w-3xl mx-auto">
+        <div className=" mx-auto">
+          <AdminHeader
+        title={ 'Create New User'}
+        description={ 'Add a new team member to the platform'}
+        back='Back'
+      />
           <UserForm
             isEditing={false}
             onSubmit={handleSubmit}

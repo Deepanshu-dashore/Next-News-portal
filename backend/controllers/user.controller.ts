@@ -55,18 +55,28 @@ export class UserController {
         if (!user) {
             return error("Invalid email or password", 401);
         }
+        
+        // Check if user account is active
+        if (!user.isActive) {
+            return error("Your account has been deactivated. Please contact the administrator.", 403);
+        }
+        
         const isPasswordValid = await bcrypt.compare(body.password, user.passwordHash);
         if (!isPasswordValid) {
             return error("Invalid email or password", 401);
         }
+        
+        // Update last login date
+        const updatedUser = await UserService.updateLastLogin(user._id.toString());
+        
         // Generate JWT token
         const token = signToken({ id: user._id, email: user.email, role: user.role });
-        await UserService.activateUser(user._id.toString());
         const response = success({ 
             id: user._id.toString(),
             email: user.email, 
             role: user.role,
             name: user.name,
+            lastLogin: updatedUser?.lastLogin || new Date(),
             token 
         }, 200, "Login successful")
         

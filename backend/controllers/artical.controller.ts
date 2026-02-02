@@ -31,13 +31,23 @@ export class ArticalController {
             const isFeatured = formData.get('isFeatured') === 'true';
             const isEditorPick = formData.get('isEditorPick') === 'true';
             const heroImage = formData.get('heroImage') as File | null;
-
-            // 🔐 Author from auth (NOT request)
             const authorId = formData.get('authorId')?.toString() || '';
 
             // Validation
-            if (!title || !content || !excerpt || !summary || !categoryId) {
-                return error("Missing required fields", 400);
+            if (!title) {
+                return error("Title is required", 400);
+            }
+            if (!content) {
+                return error("Content is required", 400);
+            }
+            if (!excerpt) {
+                return error("Excerpt is required", 400);
+            }
+            if (!summary) {
+                return error("Summary is required", 400);
+            }
+            if (!categoryId) {
+                return error("Category is required", 400);
             }
 
             if (!heroImage || heroImage.size === 0) {
@@ -163,10 +173,51 @@ export class ArticalController {
         }
     }
 
-    // Get published articals
+    // Get all articles with category (Dynamic Category Load)
+    static async getAllArticalWithCategory(req: Request) {
+        try {
+            const articals = await ArticalService.getAllArticalWithCategory();
+            return success(articals, 200, "Category-wise articles fetched successfully");
+        } catch (err: any) {
+            return error(err.message || "Failed to fetch category-wise articles", 500);
+        }
+    }
+
+    // Get top highlights (one per category)
+    static async getTopHighlights(req: Request) {
+        try {
+            const articals = await ArticalService.getTopHighlights();
+            return success(articals, 200, "Top highlights fetched successfully");
+        } catch (err: any) {
+            return error(err.message || "Failed to fetch top highlights", 500);
+        }
+    }
+
+    // Get editor's pick articles
+    static async getEditorPicks(req: Request) {
+        try {
+            const url = new URL(req.url);
+            const limit = parseInt(url.searchParams.get('limit') || '4');
+            const articals = await ArticalService.getEditorPicks(limit);
+            return success(articals, 200, "Editor's pick articles fetched successfully");
+        } catch (err: any) {
+            return error(err.message || "Failed to fetch editor's pick articles", 500);
+        }
+    }
+
+    // Get published articals with filters
     static async getPublishedArticals(req: Request) {
         try {
-            const articals = await ArticalService.getPublishedArticals();
+            const url = new URL(req.url);
+            const filters = {
+                isFeatured: url.searchParams.get('featured') === 'true',
+                isEditorPick: url.searchParams.get('editorPick') === 'true',
+                isBreaking: url.searchParams.get('breaking') === 'true',
+                region: url.searchParams.get('region'),
+                limit: url.searchParams.get('limit'),
+            };
+
+            const articals = await ArticalService.getPublishedArticals(filters);
             return success(articals, 200, "Published articles fetched successfully");
         } catch (err: any) {
             return error(err.message || "Failed to fetch articles", 500);

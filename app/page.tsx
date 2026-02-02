@@ -12,20 +12,48 @@ import {
   getFeaturedArticles,
   getTrendingArticles,
   getLatestArticles,
-  getArticlesByCategory,
   getEditorPickArticles,
-  getArticleBySlug,
-} from '@/lib/mockData';
+  getArticlesByCategorySlug,
+  getAllCategoryWiseArticles,
+  getTopHighlights,
+} from '@/src/lib/api/article.api';
 
-export default function Home() {
-  const featuredArticles = getFeaturedArticles(3);
-  const trendingArticles = getTrendingArticles(5);
-  const latestArticles = getLatestArticles(5);
-  const techArticles = getArticlesByCategory('Technology', 4);
-  const businessArticles = getArticlesByCategory('Business', 4);
-  const worldArticles = getArticlesByCategory('World', 4);
-  const editorPicks = getEditorPickArticles(3);
+export default async function Home() {
+  // Fetch data from API
+  const trendingArticlesRaw = await getTrendingArticles(10).catch(() => []); // Fetch more to allow for filtering
+  const latestArticlesRaw = await getLatestArticles(10).catch(() => []);
+  const editorPicksRaw = await getEditorPickArticles(5).catch(() => []);
+  const topHighlightsRaw = await getTopHighlights().catch(() => []);
+
+  // Deduplication Logic
+  const shownIds = new Set<string>();
+
+  // 1. Top Highlights (Hero Slider) - High Priority
+  const topHighlights = topHighlightsRaw.slice(0, 5); 
+  topHighlights.forEach((a: any) => shownIds.add(a.id));
+
+  // 2. Highlights (Sidebar) - Trending articles not in Hero
+  const highlights = trendingArticlesRaw
+    .filter((a: any) => !shownIds.has(a.id))
+    .slice(0, 4);
+  highlights.forEach((a: any) => shownIds.add(a.id));
+
+  // 3. Latest News
+  const latestArticles = latestArticlesRaw
+    .filter((a: any) => !shownIds.has(a.id))
+    .slice(0, 5);
+  latestArticles.forEach((a: any) => shownIds.add(a.id));
+
+  // 4. Editor's Picks
+  const editorPicks = editorPicksRaw
+    .filter((a: any) => !shownIds.has(a.id))
+    .slice(0, 3);
+  
   const breakingSpotlight = latestArticles[0];
+
+  // Fetch dynamic category articles
+  // The API now returns grouped data: { categoryName, articles: [...] }[]
+  const allCategoryArticles = await getAllCategoryWiseArticles().catch(() => []);
 
   return (
     <div className="pb-20">
@@ -36,8 +64,8 @@ export default function Home() {
         <div className="py-8 md:py-12">
           {/* Hero Section */}
           <HeroSection 
-            featuredArticles={featuredArticles}
-            highlights={trendingArticles.slice(0, 4)}
+            featuredArticles={topHighlights}
+            highlights={highlights}
           />
 
           {/* Main Content Grid */}
@@ -47,24 +75,28 @@ export default function Home() {
               {/* Latest News */}
               <LatestNewsSection articles={latestArticles} />
 
-              {/* Technology Category */}
-              {techArticles.length > 0 && (
-                <CategoryBlock
-                  title="Technology"
-                  viewAllHref="/category/tech"
-                  featuredArticle={techArticles[0]}
-                  articles={techArticles.slice(1, 4)}
-                />
-              )}
-
-              {/* Business Category */}
-              {businessArticles.length > 0 && (
-                <CategoryBlock
-                  title="Business"
-                  viewAllHref="/category/business"
-                  featuredArticle={businessArticles[0]}
-                  articles={businessArticles.slice(1, 4)}
-                />
+              {/* Dynamic Categories */}
+              {allCategoryArticles.length > 0 ? (
+                allCategoryArticles.map((categoryGroup: any) => {
+                    const articles = categoryGroup.articles;
+                    if (!articles || articles.length === 0) return null;
+                    
+                    const catName = categoryGroup.categoryName;
+                    // Fallback slug generation since service doesn't return it yet
+                    const catSlug = catName.toLowerCase().replace(/\s+/g, '-');
+                    
+                    return (
+                        <CategoryBlock
+                            key={categoryGroup._id}
+                            title={catName}
+                            viewAllHref={`/category/${catSlug}`}
+                            featuredArticle={articles[0]}
+                            articles={articles.slice(1, 4)}
+                        />
+                    );
+                })
+              ) : (
+                 <div className="text-gray-500 italic">No category news available at the moment.</div>
               )}
             </div>
 
@@ -88,29 +120,6 @@ export default function Home() {
 
       {/* Video Network - Full Width Section */}
       <VideoSection />
-
-      <Container>
-         <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
-            <div className="lg:col-span-3">
-               {/* World Category */}
-              {worldArticles.length > 0 && (
-                <CategoryBlock
-                  title="World News"
-                  viewAllHref="/category/world"
-                  featuredArticle={worldArticles[0]}
-                  articles={worldArticles.slice(1, 4)}
-                />
-              )}
-            </div>
-            <div className="hidden lg:block">
-                 {latestArticles.slice(1, 4).map((article) => (
-                   <div key={article.id} className="mb-6 border border-gray-200 rounded-2xl overflow-hidden">
-                     <HighlightCard article={article} tone="light" showMeta />
-                   </div>
-                 ))}
-            </div>
-         </div>
-      </Container>
     </div>
   );
 }

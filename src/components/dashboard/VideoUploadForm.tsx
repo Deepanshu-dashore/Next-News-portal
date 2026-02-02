@@ -3,6 +3,7 @@
 import { CreateVideoData } from '@/src/lib/api/video.api';
 import { useState, useEffect } from 'react';
 import FormHeader from './FormHeader';
+import SubmitButton from './SubmitButton';
 
 interface VideoUploadFormProps {
   onSubmit: (data: VideoUploadFormData) => Promise<void>;
@@ -307,7 +308,7 @@ export default function VideoUploadForm({ onSubmit, onCancel, onPreview, showPre
             <button
               type="button"
               onClick={handlePreviewClick}
-              className="px-5 py-2.5 cursor-pointer text-sm border   border-blue-600 bg-blue-600 font-semibold rounded-lg hover:bg-blue-500 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-5 py-2 cursor-pointer text-sm border   border-blue-600 bg-blue-600 font-semibold rounded-lg hover:bg-blue-500 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               disabled={isPreviewDisabled()}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className='h-5 w-5' viewBox="0 0 16 16">
@@ -316,13 +317,13 @@ export default function VideoUploadForm({ onSubmit, onCancel, onPreview, showPre
               Preview on Site
             </button>
           )}
-          <button
-            type="submit"
-            className="px-5 py-2.5 cursor-pointer text-sm bg-linear-to-r from-red-600 to-red-700 text-white font-semibold rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:opacity-50 capitalize tracking-wide"
-            disabled={isLoading}
-          >
-            {isLoading ? (initialData ? 'Updating...' : 'Uploading...') : (initialData ? 'Update Video' : 'Upload Video')}
-          </button>
+          <SubmitButton 
+            isLoading={isLoading} 
+            icon='streamline-plump:camera-video-solid'
+            className='bg-red-600 py-1 hover:bg-red-500 h-10'
+            label={initialData ? 'Update Video' : 'Upload Video'} 
+            loadingLabel={initialData ? 'Updating...' : 'Uploading...'} 
+          />
         </div>
       </div>
     </form>
