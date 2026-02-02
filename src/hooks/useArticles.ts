@@ -51,6 +51,7 @@ interface ArticlesResponse {
   publishedAt?: string;
   region?: string;
   isBreaking?: boolean;
+  isEditorPick?: boolean;
 }
 
 export function useCreateArticle() {
@@ -70,6 +71,7 @@ export function useCreateArticle() {
       formData.append('status', data.status || 'draft');
       formData.append('region', data.region || '');
       formData.append('isBreaking', String(data.isBreaking || false));
+      formData.append('isEditorPick', String(data.isEditorPick || false));
       
       // Append tags as JSON string or individual items
       if (data.tags && data.tags.length > 0) {
@@ -209,6 +211,7 @@ export function useUpdateArticle() {
       formData.append('status', data.status || 'draft');
       formData.append('region', data.region || '');
       formData.append('isBreaking', String(data.isBreaking || false));
+      formData.append('isEditorPick', String(data.isEditorPick || false));
       
       // Append tags as JSON string
       if (data.tags && data.tags.length > 0) {

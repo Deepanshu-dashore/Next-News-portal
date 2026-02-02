@@ -1,14 +1,33 @@
 'use client';
 
-import { NewsArticle } from '@/types';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Container } from '@/components/ui/Container';
+import apiClient from '@/src/lib/axios';
 
-interface BreakingNewsProps {
-  articles: NewsArticle[];
-}
+export function BreakingNews() {
+  const [articles, setArticles] = useState<{title: string, slug: string}[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-export function BreakingNews({ articles }: BreakingNewsProps) {
+  useEffect(() => {
+    const fetchBreakingNews = async () => {
+      try {
+        const response = await apiClient.get('/article/breakingNews/titles');
+        if (response.data.success) {
+          setArticles(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching breaking news:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBreakingNews();
+  }, []);
+
+  if (isLoading || articles.length === 0) return null;
+
   return (
     <div className="bg-white border-b border-gray-200">
       <Container>
@@ -20,9 +39,9 @@ export function BreakingNews({ articles }: BreakingNewsProps) {
           
           <div className="relative flex-1 overflow-hidden h-full flex items-center">
             <div className="animate-marquee whitespace-nowrap">
-              {articles.map((article) => (
+              {articles.map((article, idx) => (
                 <Link
-                  key={article.id}
+                  key={`${article.slug}-${idx}`}
                   href={`/article/${article.slug}`}
                   className="inline-flex items-center gap-2 mr-8 text-xs font-semibold text-gray-800 hover:text-[var(--accent-primary)] transition-colors"
                 >
@@ -31,9 +50,9 @@ export function BreakingNews({ articles }: BreakingNewsProps) {
                 </Link>
               ))}
               {/* Duplicate for seamless loop */}
-              {articles.map((article) => (
+              {articles.map((article, idx) => (
                 <Link
-                  key={`${article.id}-clone`}
+                  key={`${article.slug}-clone-${idx}`}
                   href={`/article/${article.slug}`}
                   className="inline-flex items-center gap-2 mr-8 text-xs font-semibold text-gray-800 hover:text-[var(--accent-primary)] transition-colors"
                 >

@@ -1,14 +1,14 @@
 'use client';
 
 import { UserProfile } from '@/src/hooks/useUserProfile';
-import { useState } from 'react';
+import { Icon } from '@iconify/react';
 
 interface UserProfileViewProps {
   profile: UserProfile;
   onEdit: () => void;
 }
 
- function UserProfileView({ profile, onEdit }: UserProfileViewProps) {
+function UserProfileView({ profile, onEdit }: UserProfileViewProps) {
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -18,218 +18,199 @@ interface UserProfileViewProps {
       .slice(0, 2);
   };
 
+  const StatItem = ({ label, value, icon }: { label: string; value: number | string; icon: string }) => (
+    <div className="flex items-center border-b-2 gap-3 p-3 px-1 border-gray-200/60 hover:bg-gray-50 transition-colors cursor-default">
+      <div className="w-11 h-11 rounded-lg bg-linear-to-t from-gray-200/70 via-gray-100 to-gray-200/60 flex items-center justify-center text-gray-500">
+        <Icon icon={icon} className="w-6 h-6" />
+      </div>
+      <div className="flex flex-col">
+        <span className="text-lg font-bold text-gray-900 leading-none">{value}</span>
+        <span className="text-xs text-gray-500 font-medium mt-0.5">{label}</span>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="space-y-6">
-      {/* Header Card - Professional Profile Design */}
-      <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-        {/* Banner */}
-        <div style={{backgroundImage:"url('/UserProfileBanner.png')"}} className="relative h-56 bg-cover bg-center flex items-center" />
-        
-        {/* Profile Content */}
-        <div className="relative px-8 py-6">
-          <div className="flex items-start gap-6">
-            {/* Avatar - Positioned over banner */}
-            <div className="w-32 h-32 rounded-full bg-linear-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-4xl font-bold border-4 border-white shadow-lg shrink-0 -mt-20">
-              {profile.avatarUrl ? (
-                <img src={profile.avatarUrl} alt={profile.name} className="w-full h-full rounded-full object-cover" />
-              ) : (
-                getInitials(profile.name)
-              )}
-            </div>
-
-            {/* Profile Info */}
-            <div className="flex-1 mt-2">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold text-gray-900">{profile.name}</h1>
-                <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold border border-blue-200">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
-                  </svg>
-                  Verified
-                </span>
+    <div className="space-y-8 animate-fade-in pb-12">
+      {/* Header Section - Reference Style */}
+      <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 group">
+        {/* Banner with modern abstract design */}
+        <div 
+          className="h-56 bg-cover bg-center relative"
+          style={{ backgroundImage: "url('/profile-banner-reference.png')" }}
+        >
+          {/* Gradient Overlay for text visibility */}
+          <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent transition-all duration-500" />
+          
+          {/* Content Positioned Over Banner */}
+          <div className="absolute bottom-0 left-0 w-full px-8 pb-6 flex items-end gap-6">
+              {/* Avatar */}
+              <div className="relative shrink-0 -mb-4">
+                <div className="w-32 h-32 rounded-full p-1 bg-white/20 backdrop-blur-sm shadow-2xl ring-1 ring-white/30">
+                   <div className="w-full h-full rounded-full bg-white border-2 border-white flex items-center justify-center overflow-hidden">
+                      {profile.avatarUrl ? (
+                        <img src={profile.avatarUrl} alt={profile.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-3xl font-bold text-gray-300">{getInitials(profile.name)}</span>
+                      )}
+                   </div>
+                </div>
+                 {/* Active Status Indicator */}
+                 {profile.isActive && (
+                   <div className="absolute bottom-2 right-2 w-5 h-5 bg-emerald-500 border-2 border-white rounded-full shadow-md z-10" title="Active" />
+                 )}
               </div>
-              <p className="text-gray-600 text-sm mb-1">{profile.email}</p>
-              <p className="text-gray-500 text-sm flex items-center gap-1">
-                <span className={`inline-block w-2 h-2 rounded-full ${profile.isActive ? 'bg-green-500' : 'bg-gray-400'}`}></span>
-                <span className="capitalize font-medium">{profile.role}</span>
-                <span className="text-gray-400">•</span>
-                <span>{profile.isActive ? 'Active' : 'Offline'}</span>
-              </p>
-            </div>
 
-            {/* Action Button */}
-            <button
-              onClick={onEdit}
-              className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all shadow-sm hover:shadow-md shrink-0 mt-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              <span>Edit Profile</span>
-            </button>
+              {/* Name & Role & Email - On Banner */}
+              <div className="flex-1 pb-2 text-white shadow-black/50 drop-shadow-md">
+                 <div className="flex items-center gap-3 mb-1">
+                    <h1 className="text-2xl font-bold text-white leading-tight tracking-tight">{profile.name}</h1>
+                    {/* Role Badge */}
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/20 backdrop-blur-md border border-white/30 text-white shadow-sm">
+                      {profile.role}
+                    </span>
+                 </div>
+                 <p className="text-gray-200 text-sm font-medium opacity-90">{profile.email}</p>
+              </div>
+
+               {/* Action Buttons */}
+               <div className="flex gap-3 pb-2">
+                 <button
+                  onClick={onEdit}
+                  className="px-5 py-2 cursor-pointer bg-white text-gray-900 text-sm font-semibold rounded-lg hover:bg-gray-100 transition-all shadow-lg flex items-center gap-2"
+                 >
+                   <Icon icon="heroicons:pencil-square-solid" className="w-4 h-4" />
+                   Edit
+                 </button>
+               </div>
           </div>
+        </div>
 
-          {/* Stats Bar */}
-          <div className="flex gap-8 mt-8 pt-6 border-t border-gray-200">
-            {/* Total Articles */}
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{profile.totalArticles || 0}</p>
-                <p className="text-gray-500 text-xs font-medium">Articles</p>
-              </div>
-            </div>
-
-            {/* Published Articles */}
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{profile.totalPublishedArticles || 0}</p>
-                <p className="text-gray-500 text-xs font-medium">Published</p>
-              </div>
-            </div>
-
-            {/* Total Videos */}
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg bg-purple-50 flex items-center justify-center">
-                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{profile.totalVideos || 0}</p>
-                <p className="text-gray-500 text-xs font-medium">Videos</p>
-              </div>
-            </div>
-
-            {/* Last Login */}
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg bg-gray-50 flex items-center justify-center">
-                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">
-                  {profile.lastLogin ? new Date(profile.lastLogin).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Never'}
-                </p>
-                <p className="text-gray-500 text-xs font-medium">Last Login</p>
-              </div>
-            </div>
-
-            <div className="flex-1"></div>
-          </div>
+        <div className="px-8 py-2.5 relative flex justify-end">
+           {/* Stats Row */}
+           <div className="flex flex-wrap gap-10 border-t border-gray-100">
+              <StatItem 
+                label="Total Articles" 
+                value={profile.totalArticles || 0}
+                icon="ph:newspaper-clipping-duotone"
+              />
+              <StatItem 
+                label="Published" 
+                value={profile.totalPublishedArticles || 0}
+                icon="solar:file-check-bold-duotone"
+              />
+              <StatItem 
+                label="Key Drafts" 
+                value={profile.totalDraftArticles || 0}
+                icon="ic:twotone-pending-actions"
+              />
+              <StatItem 
+                label="Videos" 
+                value={profile.totalVideos || 0}
+                icon="si:video-duotone"
+              />
+               <StatItem 
+                label="Draft Videos" 
+                value={profile.totalDraftVideos || 0}
+                icon="solar:video-frame-2-bold-duotone"
+              />
+              <StatItem 
+                label="Joined Date" 
+                value={profile.createdAt ? new Date(profile.createdAt).getFullYear() : '2024'}
+                icon="lets-icons:date-today-duotone"
+              />
+           </div>
         </div>
       </div>
 
-      {/* Bio & Social Links - Side by Side */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Bio Section */}
-        {profile.bio && (
-          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wide flex items-center gap-2">
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              About
-            </h2>
-            <p className="text-gray-700 leading-relaxed">{profile.bio}</p>
-          </div>
-        )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column: Social Links (Vertical List) */}
+        <div className="space-y-6">
+           <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+              <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                Social
+              </h3>
+              <div className="space-y-4">
+                 {/* render links one by one */}
+                 {profile.socialLinks?.twitter && (
+                   <a href={profile.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 group">
+                      <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                         <p className="text-sm font-bold text-gray-900">X (Twitter)</p>
+                         <p className="text-xs text-gray-400 truncate group-hover:text-gray-600 transition-colors">{profile.socialLinks.twitter}</p>
+                      </div>
+                   </a>
+                 )}
+                 {profile.socialLinks?.facebook && (
+                   <a href={profile.socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 group">
+                      <div className="w-10 h-10 rounded-full bg-[#1877F2] text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a6 6 0 00-6 6v3H7v4h2v8h4v-8h3l1-4h-4V8a2 2 0 012-2h3z"/></svg>
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                         <p className="text-sm font-bold text-gray-900">Facebook</p>
+                         <p className="text-xs text-gray-400 truncate group-hover:text-gray-600 transition-colors">{profile.socialLinks.facebook}</p>
+                      </div>
+                   </a>
+                 )}
+                 {profile.socialLinks?.instagram && (
+                   <a href={profile.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 group">
+                      <div className="w-10 h-10 rounded-full bg-linear-to-tr from-yellow-400 via-red-500 to-purple-500 text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                         <p className="text-sm font-bold text-gray-900">Instagram</p>
+                         <p className="text-xs text-gray-400 truncate group-hover:text-gray-600 transition-colors">{profile.socialLinks.instagram}</p>
+                      </div>
+                   </a>
+                 )}
+                 {profile.socialLinks?.linkedin && (
+                   <a href={profile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 group">
+                      <div className="w-10 h-10 rounded-full bg-[#0077b5] text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                         <p className="text-sm font-bold text-gray-900">LinkedIn</p>
+                         <p className="text-xs text-gray-400 truncate group-hover:text-gray-600 transition-colors">{profile.socialLinks.linkedin}</p>
+                      </div>
+                   </a>
+                 )}
+                 {profile.socialLinks?.website && (
+                   <a href={profile.socialLinks.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 group">
+                      <div className="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                         <p className="text-sm font-bold text-gray-900">Website</p>
+                         <p className="text-xs text-gray-400 truncate group-hover:text-gray-600 transition-colors">{profile.socialLinks.website}</p>
+                      </div>
+                   </a>
+                 )}
+              </div>
+              {Object.keys(profile.socialLinks || {}).length === 0 && (
+                <p className="text-gray-400 text-sm italic">No social links connected.</p>
+              )}
+           </div>
+        </div>
 
-        {/* Social Links - One Row */}
-        {profile.socialLinks && (
-          <div className={`bg-white rounded-xl shadow-sm border border-gray-100 p-6 ${!profile.bio ? 'lg:col-span-3' : ''}`}>
-            <h2 className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wide flex items-center gap-2">
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-              </svg>
-              Connect
-            </h2>
-            <div className="flex flex-wrap gap-4">
-              {profile.socialLinks.twitter && (
-                <a
-                  href={profile.socialLinks.twitter}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors font-medium text-sm"
-                  title="Twitter"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2s9 5 20 5a9.5 9.5 0 00-9-5.5c4.75 2.25 7-7 7-7" />
-                  </svg>
-                  <span>Twitter</span>
-                </a>
-              )}
-              {profile.socialLinks.facebook && (
-                <a
-                  href={profile.socialLinks.facebook}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors font-medium text-sm"
-                  title="Facebook"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M18 2h-3a6 6 0 00-6 6v3H7v4h2v8h4v-8h3l1-4h-4V8a2 2 0 012-2h3z" />
-                  </svg>
-                  <span>Facebook</span>
-                </a>
-              )}
-              {profile.socialLinks.linkedin && (
-                <a
-                  href={profile.socialLinks.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors font-medium text-sm"
-                  title="LinkedIn"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z" />
-                    <circle cx="4" cy="4" r="2" />
-                  </svg>
-                  <span>LinkedIn</span>
-                </a>
-              )}
-              {profile.socialLinks.instagram && (
-                <a
-                  href={profile.socialLinks.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-pink-50 hover:text-pink-600 transition-colors font-medium text-sm"
-                  title="Instagram"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                    <path d="M16.5 7.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0M12 9.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z" fill="white" />
-                  </svg>
-                  <span>Instagram</span>
-                </a>
-              )}
-              {profile.socialLinks.website && (
-                <a
-                  href={profile.socialLinks.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 hover:text-gray-900 transition-colors font-medium text-sm"
-                  title="Website"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                  </svg>
-                  <span>Website</span>
-                </a>
-              )}
+        {/* Right Column: About/Bio */}
+         <div className="lg:col-span-2 space-y-6">
+            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm min-h-[360px]">
+               <h3 className="text-lg font-bold text-gray-900 mb-4">About / Bio</h3>
+               {profile.bio ? (
+                 <div className="prose prose-slate max-w-none">
+                   <p className="text-gray-600 leading-relaxed text-base">{profile.bio}</p>
+                 </div>
+               ) : (
+                 <div className="flex flex-col items-center justify-center h-40 text-center">
+                   <p className="text-gray-400 mb-2">No bio added yet.</p>
+                   <button onClick={onEdit} className="text-sm font-medium text-blue-600 hover:underline">Add a bio</button>
+                 </div>
+               )}
             </div>
-          </div>
-        )}
+
+         </div>
       </div>
     </div>
   );

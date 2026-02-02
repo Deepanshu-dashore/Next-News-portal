@@ -1,14 +1,16 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { useDropzone } from 'react-dropzone';
 import FormHeader from './FormHeader';
 import AdminHeader from './AdminHeader';
 import { useCategories } from '@/src/hooks/useCategories';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { useCreateArticle, useUpdateArticle, CreateArticleData } from '@/src/hooks/useArticles';
+import SubmitButton from './SubmitButton';
 
 interface ArticleFormData {
   title: string;
@@ -26,15 +28,17 @@ interface ArticleFormData {
   region: 'India' | 'World' | 'Custom'|string;
   customRegion: string;
   isBreaking: boolean;
+  isEditorPick: boolean;
 }
 
 interface ArticleFormProps {
-  initialData?: Omit<ArticleFormData, 'tags' | 'region' | 'customRegion' | 'isBreaking'> & {
+  initialData?: Omit<ArticleFormData, 'tags' | 'region' | 'customRegion' | 'isBreaking' | 'isEditorPick'> & {
     tags?: string[] | string;
     id?: string;
     region?: string;
     customRegion?: string;
     isBreaking?: boolean;
+    isEditorPick?: boolean;
   };
   isEditing?: boolean;
   articleId?: string;
@@ -70,6 +74,7 @@ export function ArticleForm({ initialData, isEditing = false, articleId }: Artic
       author: user?.name || initialData.author || '',
       ...normalizeRegion((initialData as any).region, (initialData as any).customRegion),
       isBreaking: (initialData as any).isBreaking ?? false,
+      isEditorPick: (initialData as any).isEditorPick ?? false,
     } : {
       title: '',
       slug: '',
@@ -86,6 +91,7 @@ export function ArticleForm({ initialData, isEditing = false, articleId }: Artic
       region: 'India',
       customRegion: '',
       isBreaking: false,
+      isEditorPick: false,
     }
   );
 
@@ -130,18 +136,27 @@ export function ArticleForm({ initialData, isEditing = false, articleId }: Artic
 
     if (!formData.title.trim()) {
       newErrors.title = 'Title is required';
+      toast.error('Title is required');
     }
     if (!formData.content.trim()) {
       newErrors.content = 'Content is required';
+      toast.error('Content is required');
     }
     if (!formData.excerpt.trim()) {
       newErrors.excerpt = 'Excerpt is required';
+      toast.error('Excerpt is required');
     }
     if (!formData.description.trim()) {
       newErrors.description = 'Description/Summary is required';
+      toast.error('Description/Summary is required');
     }
     if (!formData.author.trim()) {
       newErrors.author = 'Author is required';
+      toast.error('Author is required');
+    }
+    if (!formData.category) {
+      newErrors.category = 'Category is required';
+      toast.error('Category is required');
     }
 
     setErrors(newErrors);
@@ -191,11 +206,63 @@ export function ArticleForm({ initialData, isEditing = false, articleId }: Artic
     }
   };
 
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      toast.error('Image size should be less than 5MB');
+      return;
+    }
+
+    setIsImageUploading(true);
+    try {
+      // Store the actual file object
+      setFormData(prev => ({
+        ...prev,
+        featuredImage: file,
+      }));
+      
+      // Create preview for display
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setFormData(prev => ({
+          ...prev,
+          featuredImagePreview: event.target?.result as string,
+        }));
+      };
+      reader.readAsDataURL(file);
+      
+      toast.success('Image uploaded successfully');
+    } catch (error) {
+      toast.error('Failed to upload image');
+    } finally {
+      setIsImageUploading(false);
+    }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
+    onDrop,
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg']
+    },
+    maxFiles: 1,
+    multiple: false,
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
-      toast.error('Please fill in all required fields');
+      // Individual field errors are already shown in validateForm
       return;
     }
 
@@ -221,6 +288,7 @@ export function ArticleForm({ initialData, isEditing = false, articleId }: Artic
         featuredImage: formData.featuredImage || undefined,
         region: resolvedRegion,
         isBreaking: formData.isBreaking,
+        isEditorPick: formData.isEditorPick,
       };
 
       if (isEditing && articleId) {
@@ -300,7 +368,7 @@ export function ArticleForm({ initialData, isEditing = false, articleId }: Artic
               value={formData.title}
               onChange={handleInputChange}
               placeholder="Enter article title..."
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition ${
+              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition ${
                 errors.title ? 'border-red-500' : 'border-gray-300'
               }`}
             />
@@ -316,7 +384,7 @@ export function ArticleForm({ initialData, isEditing = false, articleId }: Artic
               onChange={handleInputChange}
               placeholder="Brief excerpt of the article..."
               rows={2}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition resize-none ${
+              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition resize-none ${
                 errors.excerpt ? 'border-red-500' : 'border-gray-300'
               }`}
             />
@@ -333,7 +401,7 @@ export function ArticleForm({ initialData, isEditing = false, articleId }: Artic
               onChange={handleInputChange}
               placeholder="Detailed summary of the article..."
               rows={3}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition resize-none ${
+              className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition resize-none ${
                 errors.description ? 'border-red-500' : 'border-gray-300'
               }`}
             />
@@ -431,7 +499,7 @@ export function ArticleForm({ initialData, isEditing = false, articleId }: Artic
                     e.preventDefault();
                     if (contentEditorRef.current) {
                       contentEditorRef.current.focus();
-                      document.execCommand("insertOrderedList", false,  "");
+                      document.execCommand("insertOrderedList", false, "");
                     }
                   }}
                   className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-200"
@@ -483,7 +551,7 @@ export function ArticleForm({ initialData, isEditing = false, articleId }: Artic
                       featuredImage: null,
                       featuredImagePreview: ''
                     }))}
-                    className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-lg hover:bg-red-700"
+                    className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-lg hover:bg-red-700 transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -491,44 +559,61 @@ export function ArticleForm({ initialData, isEditing = false, articleId }: Artic
                   </button>
                 </div>
               )}
-              <div className="flex items-center justify-center w-full">
-                <label
-                  htmlFor="dropzone-file"
-                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <svg
-                      className="w-8 h-8 mb-4 text-gray-500"
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 20 16"
-                    >
-                      <path
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
-                      />
-                    </svg>
-                    <p className="mb-2 text-sm text-gray-500">
-                      <span className="font-semibold">Click to upload</span> (or
-                      drag and drop)
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      SVG, PNG, JPG or GIF (MAX. 800x400px)
-                    </p>
-                  </div>
-                  <input
-                    id="dropzone-file"
-                    type="file"
-                    className="hidden"
-                    name="featuredImage"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                  />
-                </label>
+              <div 
+                {...getRootProps()} 
+                className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
+                  isDragActive 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : isDragReject 
+                    ? 'border-red-500 bg-red-50' 
+                    : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
+                }`}
+              >
+                <input {...getInputProps()} />
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  {isImageUploading ? (
+                    <>
+                      <div className="w-8 h-8 mb-4 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+                      <p className="text-sm text-gray-600">Uploading...</p>
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="w-8 h-8 mb-4 text-gray-500"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 20 16"
+                      >
+                        <path
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
+                        />
+                      </svg>
+                      {isDragActive ? (
+                        <p className="mb-2 text-sm text-blue-600 font-semibold">
+                          Drop your image here
+                        </p>
+                      ) : isDragReject ? (
+                        <p className="mb-2 text-sm text-red-600 font-semibold">
+                          Only image files are accepted
+                        </p>
+                      ) : (
+                        <>
+                          <p className="mb-2 text-sm text-gray-500">
+                            <span className="font-semibold">Click to upload</span> or drag and drop
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            PNG, JPG, GIF, WEBP or SVG (MAX. 5MB)
+                          </p>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -603,7 +688,7 @@ export function ArticleForm({ initialData, isEditing = false, articleId }: Artic
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
                 placeholder="Type a tag and press Enter"
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition"
+                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none transition"
               />
               <button
                 type="button"
@@ -618,7 +703,7 @@ export function ArticleForm({ initialData, isEditing = false, articleId }: Artic
                 {formData.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="inline-flex items-center gap-2 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium"
+                    className="inline-flex text-xs items-center gap-2 px-3 py-1 bg-red-100 text-red-800 rounded-full font-medium"
                   >
                     {tag}
                     <button
@@ -670,6 +755,28 @@ export function ArticleForm({ initialData, isEditing = false, articleId }: Artic
             </label>
           </div>
 
+          {/* Editor's Pick Toggle */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <label className="block text-sm font-bold text-gray-900 mb-3">Editor's Pick</label>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  name="isEditorPick"
+                  checked={formData.isEditorPick}
+                  onChange={handleToggleChange}
+                  className="sr-only peer"
+                />
+                <div className="w-12 h-6 bg-gray-300 rounded-full peer peer-checked:bg-blue-600 transition-all"></div>
+                <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform peer-checked:translate-x-6"></div>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-gray-700">Mark as Editor's Pick</span>
+                <p className="text-xs text-gray-500">Feature this article as editor's choice</p>
+              </div>
+            </label>
+          </div>
+
           {/* Publish Date */}
           <div className="bg-white rounded-lg shadow p-6">
             <label className="block text-sm font-bold text-gray-900 mb-3">Publish Date</label>
@@ -685,13 +792,13 @@ export function ArticleForm({ initialData, isEditing = false, articleId }: Artic
           {/* Action Buttons */}
           <div className="space-y-3">
             <div className="flex gap-3">
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="flex-1 px-6 py-3 bg-linear-to-r from-red-600 to-red-700 text-white font-bold rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? 'Saving...' : isEditing ? 'Update Article' : 'Publish Article'}
-              </button>
+              <SubmitButton 
+                isLoading={isLoading} 
+                label={isEditing ? 'Update Article' : 'Publish Article'} 
+                loadingLabel="Saving..." 
+                className="flex-1"
+                icon="fluent:news-16-filled"
+              />
               <button
                 type="button"
                 onClick={() => {

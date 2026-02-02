@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import FormHeader from './FormHeader';
+import SubmitButton from './SubmitButton';
 
 interface CategoryUploadFormProps {
   onSubmit: (data: CategoryUploadFormData) => Promise<void>;
@@ -116,13 +117,12 @@ export default function CategoryUploadForm({ onSubmit, onCancel, isLoading, init
 
         {/* Form Actions */}
         <div className="flex gap-3 justify-end border-t border-gray-200 pt-6">
-          <button
-            type="submit"
-            className="px-5 py-2.5 bg-linear-to-r text-sm from-emerald-600 to-emerald-700 cursor-pointer text-white font-semibold rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:opacity-50 capitalize tracking-wide"
-            disabled={isLoading}
-          >
-            {isLoading ? (initialData ? 'Updating...' : 'Creating...') : (initialData ? 'Update Category' : 'Create Category')}
-          </button>
+          <SubmitButton 
+            isLoading={isLoading} 
+            label={initialData ? 'Update Category' : 'Create Category'} 
+            loadingLabel={initialData ? 'Updating...' : 'Creating...'} 
+            icon="stash:list-add-duotone"
+          />
         </div>
       </div>
     </form>

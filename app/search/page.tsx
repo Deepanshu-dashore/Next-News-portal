@@ -3,7 +3,7 @@
 import { Container } from '@/components/ui/Container';
 import { Input } from '@/components/ui/Input';
 import { NewsCard } from '@/components/news/NewsCard';
-import { getLatestArticles } from '@/lib/mockData';
+import { searchArticles, getLatestArticles } from '@/src/lib/api/article.api';
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
@@ -11,20 +11,33 @@ function SearchContent() {
   const searchParams = useSearchParams(); 
   const query = searchParams.get('q') || '';
   const [searchQuery, setSearchQuery] = useState(query);
-  const [filteredArticles, setFilteredArticles] = useState(getLatestArticles(20));
+  const [filteredArticles, setFilteredArticles] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (searchQuery.trim().length >= 3) {
-      const allArticles = getLatestArticles(20);
-      const filtered = allArticles.filter(article =>
-        article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        article.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        article.category.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredArticles(filtered);
-    } else {
-      setFilteredArticles(getLatestArticles(20));
-    }
+    const fetchArticles = async () => {
+      if (searchQuery.trim().length >= 3) {
+        setIsLoading(true);
+        try {
+          const results = await searchArticles(searchQuery);
+          setFilteredArticles(results);
+        } catch (error) {
+          console.error('Search error:', error);
+          setFilteredArticles([]);
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        try {
+          const latest = await getLatestArticles(20);
+          setFilteredArticles(latest);
+        } catch (error) {
+          setFilteredArticles([]);
+        }
+      }
+    };
+    
+    fetchArticles();
   }, [searchQuery]);
 
   return (

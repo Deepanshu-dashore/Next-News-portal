@@ -99,7 +99,7 @@ interface SidebarItemProps {
 function SidebarItem({ tab, isActive, isExpanded, onToggle, pathname }: SidebarItemProps) {
   const hasSubmenu = tab.submenu && tab.submenu.length > 0;
   const baseItemClasses = `
-    w-full flex items-center justify-between px-3 py-2 rounded-md
+    w-full flex items-center justify-between px-3 py-3 cursor-pointer rounded-md
     transition-all duration-200 ease-out group
     ${isActive
       ? 'bg-red-50 text-red-700'
@@ -155,11 +155,11 @@ function SidebarItem({ tab, isActive, isExpanded, onToggle, pathname }: SidebarI
                   key={subitem.href}
                   href={subitem.href}
                   className={`
-                    flex items-center gap-2 px-2 py-2 rounded-md
+                    flex items-center gap-2 px-2 py-3 rounded-md
                     transition-all duration-200 ease-out
                     ${isSubActive
                       ? 'bg-red-50 text-red-700 font-semibold'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     }
                   `}
                 >

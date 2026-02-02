@@ -4,17 +4,12 @@ import { FeaturedCard } from '@/components/news/FeaturedCard';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { EditorPickWidget } from '@/components/widgets/EditorPickWidget';
 import { NewsletterWidget } from '@/components/widgets/NewsletterWidget';
-import { getArticlesByCategory, getEditorPickArticles } from '@/lib/mockData';
+import { getArticlesByCategorySlug, getEditorPickArticles } from '@/src/lib/api/article.api';
 import { notFound } from 'next/navigation';
-
-// interface CategoryPageProps {
-//   params: {
-//     slug: string;
-//   };
-// }
 
 const categoryMap: Record<string, string> = {
   'tech': 'Technology',
+  'technology': 'Technology',
   'business': 'Business',
   'sports': 'Sports',
   'world': 'World',
@@ -25,13 +20,11 @@ const categoryMap: Record<string, string> = {
 };
 
 export default async function CategoryPage({ params }:{ params: Promise<{ slug: string }> }) {
-  const categoryName = categoryMap[(await params).slug];
-  if (!categoryName) {
-    notFound();
-  }
+  const slug = (await params).slug;
+  const categoryName = categoryMap[slug] || slug;
 
-  const articles = getArticlesByCategory(categoryName, 15);
-  const editorPicks = getEditorPickArticles(3);
+  const articles = await getArticlesByCategorySlug(slug, 15).catch(() => []);
+  const editorPicks = await getEditorPickArticles(3).catch(() => []);
 
   if (articles.length === 0) {
     notFound();

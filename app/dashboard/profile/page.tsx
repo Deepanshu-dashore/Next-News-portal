@@ -8,6 +8,7 @@ import AppLayoutProvider from '@/src/components/layout/AppLayoutProvider';
 import AdminHeader from '@/src/components/dashboard/AdminHeader';
 import UserProfileView from '@/src/components/dashboard/UserProfileView';
 import UserProfileEdit from '@/src/components/dashboard/UserProfileEdit';
+import { Icon } from '@iconify/react';
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -69,11 +70,23 @@ export default function ProfilePage() {
   return (
     <ProtectedRoute>
       <AppLayoutProvider>
-        <div className="space-y-8">
-          <AdminHeader
-            title={isEditing ? 'Edit Profile' : 'My Profile'}
-            description={isEditing ? 'Update your profile information' : 'View and manage your profile'}
-          />
+        <div className="">
+          {isEditing && (
+            <AdminHeader
+              title="Edit Profile"
+              description="Update your profile information"
+              add={
+                <button 
+                onClick={() => setIsEditing(false)}
+                className="flex items-center cursor-pointer text-sm py-2 rounded-md text-semibold border border-gray-300 px-2.5 gap-2 text-gray-500 hover:text-gray-900 transition-colors group"
+                type="button"
+              >
+                <Icon icon="heroicons:arrow-left-20-solid" className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                <span className="font-medium">Back to Profile</span>
+              </button>
+              }
+            />
+          )}
 
           {isEditing ? (
             <UserProfileEdit

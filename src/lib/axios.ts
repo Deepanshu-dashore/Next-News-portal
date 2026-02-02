@@ -2,8 +2,12 @@ import axios from 'axios';
 import { getAuthToken, clearAuthCookies } from '@/src/lib/cookies';
 
 // Create axios instance with base configuration
+const baseURL = typeof window === 'undefined' 
+  ? `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api`
+  : '/api';
+
 const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },

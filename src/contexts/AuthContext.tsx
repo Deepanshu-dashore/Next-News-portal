@@ -16,6 +16,8 @@ interface User {
   email: string;
   name: string;
   role: 'admin' | 'author' | 'editor';
+  avatarUrl?: string;
+  bio?: string;
 }
 
 interface AuthContextType {
@@ -58,6 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: data.data.email,
         name: data.data.name,
         role: data.data.role,
+        avatarUrl: data.data.avatarUrl,
+        bio: data.data.bio,
       };
 
       // Store the auth token in cookies

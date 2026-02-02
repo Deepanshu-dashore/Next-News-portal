@@ -1,37 +1,34 @@
 'use client';
-
 import Link from 'next/link';
 import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
 import { footerLinks } from '@/lib/constants';
 import { useActiveCategories } from '@/src/hooks/useCategories';
-
-const latestNewsHeadlines = [
-  "Love Horoscope Today, January 29, 2026",
-  "A$AP Rocky's Son Once Snitched Him to Rihanna",
-  'FIR Against Actor Ranveer Singh for Mimicking Daiva Act',
-  "Aashakal Aayiram Hides a Paapapa Surprise Moment",
-  'Who Is Beth Galetti? Amazon HR Leader Behind Layoffs',
-  'Daily Shani Predictions, January 29, 2026',
-  'Former Bigg Boss Kannada Fame Booked for Drunk Driving',
-  'Patrick Mahomes Injury Update Signals Comeback',
-  'CISCE Class 10th Admit Card 2026 Released',
-  "Don 3 Focus Turns to Jee Le Zaraa After Ranveer's Exit",
-  "Novak Djokovic Fires Back at Journalist's Question",
-  'India-EU FTA: Will Turkish Goods Enter India?',
-  'LeBron James Sets Record Likely Untouched for Years',
-  "Ted Lasso Season 4 Announced for Summer 2026",
-  'Baramati Plane Crash: What Might Have Avoided It',
-  'Kike Hernandez Shares Birthday Moment with Arizona',
-  'Horoscope Tomorrow, January 30, 2026',
-  'Mourinho Sends Real Madrid into Champions League Playoffs',
-  'Chimpanzee vs Bonobo: Wonder Man Debate',
-  'World Longest Road Tunnel Breakthrough',
-];
+import { useState, useEffect } from 'react';
+import apiClient from '@/src/lib/axios';
 
 export default function Footer() {
-  const { data: categoriesData, isLoading } = useActiveCategories();
+  const { data: categoriesData, isLoading: categoriesLoading } = useActiveCategories();
+  const [latestHeadlines, setLatestHeadlines] = useState<{title: string, slug: string}[]>([]);
+  const [headlinesLoading, setHeadlinesLoading] = useState(true);
   const activeCategories = categoriesData?.data || [];
+
+  useEffect(() => {
+    const fetchLatestHeadlines = async () => {
+      try {
+        const response = await apiClient.get('/article/latest/titles?limit=20');
+        if (response.data.success) {
+          setLatestHeadlines(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching latest headlines:', error);
+      } finally {
+        setHeadlinesLoading(false);
+      }
+    };
+
+    fetchLatestHeadlines();
+  }, []);
 
   return (
     <footer className="bg-white text-gray-900 border-t border-gray-200">
@@ -186,7 +183,7 @@ export default function Footer() {
               <span className="text-sm font-medium text-gray-500">Stay on top of the beats you love</span>
             </div>
             <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-y-3 gap-x-8 text-sm text-gray-600">
-              {isLoading ? (
+              {categoriesLoading ? (
                 <div className="col-span-full flex items-center justify-center py-4">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400"></div>
                 </div>
@@ -212,11 +209,23 @@ export default function Footer() {
               <span className="text-sm font-medium text-gray-500">Fresh headlines curated every hour</span>
             </div>
             <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-4 gap-x-10 text-sm text-gray-600">
-              {latestNewsHeadlines.map((headline) => (
-                <a key={headline} href="#" className="hover:text-(--accent-primary) transition-colors">
-                  {headline}
-                </a>
-              ))}
+              {headlinesLoading ? (
+                <div className="col-span-full flex items-center justify-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400"></div>
+                </div>
+              ) : latestHeadlines.length > 0 ? (
+                latestHeadlines.map((headline, idx) => (
+                  <Link 
+                    key={`${headline.slug}-${idx}`} 
+                    href={`/article/${headline.slug}`} 
+                    className="hover:text-(--accent-primary) transition-colors line-clamp-1"
+                  >
+                    {headline.title}
+                  </Link>
+                ))
+              ) : (
+                <p className="col-span-full text-center text-gray-400">No headlines available</p>
+              )}
             </div>
           </section>
         </div>

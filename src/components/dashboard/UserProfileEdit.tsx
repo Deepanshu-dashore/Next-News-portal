@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { UserProfile, UpdateProfileData } from '@/src/hooks/useUserProfile';
+import { Icon } from '@iconify/react';
+import SubmitButton from './SubmitButton';
 
 interface UserProfileEditProps {
   profile: UserProfile;
@@ -53,167 +55,120 @@ export default function UserProfileEdit({ profile, onSave, onCancel, isLoading =
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Name */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <label className="block text-sm font-bold text-gray-900 mb-3">Full Name *</label>
-        <input
-          type="text"
-          value={formData.name || ''}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none transition ${
-            errors.name ? 'border-red-500' : 'border-gray-300 focus:border-red-600'
-          }`}
-          disabled={isLoading}
-        />
-        {errors.name && <p className="text-red-600 text-sm mt-2">{errors.name}</p>}
-      </div>
+    <div className="animate-fade-in mx-auto pb-10">
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-8">
+          
+          {/* Main Info Section */}
+          <div className="space-y-6">
+             <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+               <Icon icon="heroicons:user-circle-20-solid" className="w-5 h-5 text-gray-400" />
+               Basic Info
+             </h3>
+             
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               <div className="space-y-2">
+                 <label className="text-sm font-medium text-gray-700 ml-1">Full Name</label>
+                 <div className="relative">
+                   <input
+                    type="text"
+                    value={formData.name || ''}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className={`w-full px-4 py-3 pl-10 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:border-gray-900 transition-all ${
+                      errors.name ? 'focus:ring-red-500 text-red-900 border-red-200' : 'focus:ring-gray-900 text-gray-900'
+                    }`}
+                    placeholder="Your Name"
+                    disabled={isLoading}
+                   />
+                   <Icon icon="heroicons:user-20-solid" className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+                 </div>
+                 {errors.name && <p className="text-red-500 text-xs ml-1">{errors.name}</p>}
+               </div>
+               
+               {/* Read-only Role */}
+               <div className="space-y-2 opacity-70">
+                 <label className="text-sm font-medium text-gray-700 ml-1">Role</label>
+                 <div className="relative">
+                   <input
+                    type="text"
+                    value={profile.role}
+                    disabled
+                    className="w-full px-4 py-3 pl-10 bg-gray-50 border border-gray-200 rounded-xl text-gray-500 uppercase font-bold tracking-wider cursor-not-allowed"
+                   />
+                   <Icon icon="heroicons:shield-check-20-solid" className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+                 </div>
+               </div>
+             </div>
 
-      {/* Bio */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <label className="block text-sm font-bold text-gray-900 mb-3">Bio</label>
-        <textarea
-          value={formData.bio || ''}
-          onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-          rows={4}
-          className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-red-600 focus:outline-none transition resize-none"
-          placeholder="Tell us about yourself..."
-          disabled={isLoading}
-        />
-        <p className="text-xs text-gray-500 mt-2">{(formData.bio || '').length}/500 characters</p>
-      </div>
-
-      {/* Social Links */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">Social Links</h3>
-        <div className="space-y-4">
-          {/* Twitter */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Twitter URL</label>
-            <input
-              type="url"
-              value={formData.socialLinks?.twitter || ''}
-              onChange={(e) => handleSocialLinkChange('twitter', e.target.value)}
-              placeholder="https://twitter.com/username"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-red-600 focus:outline-none transition"
-              disabled={isLoading}
-            />
+             <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 ml-1">Bio</label>
+                <textarea
+                  value={formData.bio || ''}
+                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                  rows={4}
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-900 resize-none transition-all focus:border-gray-900"
+                  placeholder="Share a short bio..."
+                  disabled={isLoading}
+                />
+                <div className="flex justify-end pr-1">
+                   <span className="text-xs text-gray-400">{(formData.bio || '').length}/500</span>
+                </div>
+             </div>
           </div>
 
-          {/* Facebook */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Facebook URL</label>
-            <input
-              type="url"
-              value={formData.socialLinks?.facebook || ''}
-              onChange={(e) => handleSocialLinkChange('facebook', e.target.value)}
-              placeholder="https://facebook.com/username"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-red-600 focus:outline-none transition"
-              disabled={isLoading}
-            />
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+              <div className="w-full border-t border-gray-100"></div>
+            </div>
+            <div className="relative flex justify-center">
+              <span className="px-3 bg-white text-sm text-gray-400 font-medium">Contact & Social</span>
+            </div>
           </div>
 
-          {/* LinkedIn */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">LinkedIn URL</label>
-            <input
-              type="url"
-              value={formData.socialLinks?.linkedin || ''}
-              onChange={(e) => handleSocialLinkChange('linkedin', e.target.value)}
-              placeholder="https://linkedin.com/in/username"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-red-600 focus:outline-none transition"
-              disabled={isLoading}
-            />
-          </div>
-
-          {/* Instagram */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Instagram URL</label>
-            <input
-              type="url"
-              value={formData.socialLinks?.instagram || ''}
-              onChange={(e) => handleSocialLinkChange('instagram', e.target.value)}
-              placeholder="https://instagram.com/username"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-red-600 focus:outline-none transition"
-              disabled={isLoading}
-            />
-          </div>
-
-          {/* Website */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Website URL</label>
-            <input
-              type="url"
-              value={formData.socialLinks?.website || ''}
-              onChange={(e) => handleSocialLinkChange('website', e.target.value)}
-              placeholder="https://yourwebsite.com"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-red-600 focus:outline-none transition"
-              disabled={isLoading}
-            />
+          {/* Social Links Section */}
+          <div className="space-y-6">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+               {[
+                 { id: 'twitter', label: 'X (Twitter)', icon: 'ri:twitter-x-fill', placeholder: 'https://x.com/username' },
+                 { id: 'facebook', label: 'Facebook', icon: 'ri:facebook-fill', placeholder: 'https://facebook.com/username' },
+                 { id: 'instagram', label: 'Instagram', icon: 'ri:instagram-fill', placeholder: 'https://instagram.com/username' },
+                 { id: 'linkedin', label: 'LinkedIn', icon: 'ri:linkedin-fill', placeholder: 'https://linkedin.com/in/username' },
+                 { id: 'website', label: 'Website', icon: 'ri:global-line', placeholder: 'https://yoursite.com' },
+               ].map((social) => (
+                 <div key={social.id} className="space-y-2">
+                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">{social.label}</label>
+                   <div className="relative group">
+                     <div className="absolute left-3 top-3 w-6 h-6 rounded-md bg-gray-100 flex items-center justify-center text-gray-500 group-focus-within:bg-gray-900 group-focus-within:text-white transition-colors">
+                        <Icon icon={social.icon} className="w-3.5 h-3.5" />
+                     </div>
+                     <input
+                      type="url"
+                      value={formData.socialLinks?.[social.id as keyof typeof formData.socialLinks] || ''}
+                      onChange={(e) => handleSocialLinkChange(social.id, e.target.value)}
+                      className="w-full px-4 py-3 pl-12 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all text-sm"
+                      placeholder={social.placeholder}
+                      disabled={isLoading}
+                     />
+                   </div>
+                 </div>
+               ))}
+             </div>
           </div>
         </div>
-      </div>
 
-      {/* Read-Only Info */}
-      <div className="grid grid-cols-2 gap-6">
-        {/* Email */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <label className="block text-sm font-bold text-gray-900 mb-3">Email</label>
-          <input
-            type="email"
-            value={profile.email}
-            disabled
-            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-          />
-          <p className="text-xs text-gray-500 mt-2">Email cannot be changed</p>
+        {/* Floating Action Bar */}
+        <div className="flex items-center justify-end gap-4 pt-2">
+           <button
+            type="button"
+            onClick={onCancel}
+            disabled={isLoading}
+            className="px-8 py-3 rounded-xl border border-gray-200 bg-white font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-all shadow-sm"
+           >
+             Cancel
+           </button>
+           <SubmitButton isLoading={isLoading} label="Save Changes" loadingLabel="Saving..." />
         </div>
-
-        {/* Role */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <label className="block text-sm font-bold text-gray-900 mb-3">Role</label>
-          <input
-            type="text"
-            value={profile.role.charAt(0).toUpperCase() + profile.role.slice(1)}
-            disabled
-            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-          />
-          <p className="text-xs text-gray-500 mt-2">Role is managed by administrators</p>
-        </div>
-      </div>
-
-      {/* Form Actions */}
-      <div className="flex gap-4 pt-6 border-t border-gray-200">
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="flex-1 px-6 py-3 bg-linear-to-r from-red-600 to-red-800 text-white font-bold rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all uppercase tracking-wide disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {isLoading ? (
-            <>
-              <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              Saving...
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Save Changes
-            </>
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isLoading}
-          className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-bold rounded-lg hover:bg-gray-50 transition-all uppercase tracking-wide disabled:opacity-50"
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }

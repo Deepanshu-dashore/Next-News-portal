@@ -1,5 +1,6 @@
 import { Container } from '@/components/ui/Container';
-import { getLatestArticles, getEditorPickArticles } from '@/lib/mockData';
+import { getLatestArticles, getEditorPickArticles } from '@/src/lib/api/article.api';
+import { transformArticle } from '@/src/lib/api/transform';
 import { formatDate } from '@/lib/utils';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -10,12 +11,12 @@ import Link from 'next/link';
 
 async function getArticleBySlug(slug: string) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/artical/slug/${slug}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/article/slug/${slug}`, {
       cache: 'no-store'
     });
     if (!response.ok) return null;
     const data = await response.json();
-    return data.data;
+    return transformArticle(data.data);
   } catch (error) {
     console.error('Error fetching article:', error);
     return null;
@@ -24,8 +25,8 @@ async function getArticleBySlug(slug: string) {
 
 export default async function ArticlePage({ params }: { params : Promise<{ slug: string }> }) {
    const article = await getArticleBySlug((await params).slug);
-   const latestArticles = getLatestArticles(3);
-   const editorPicks = getEditorPickArticles(3);
+   const latestArticles = await getLatestArticles(3).catch(() => []);
+   const editorPicks = await getEditorPickArticles(3).catch(() => []);
    const highlightArticle = editorPicks[0] ?? latestArticles[0];
 
   if (!article) {
@@ -33,7 +34,7 @@ export default async function ArticlePage({ params }: { params : Promise<{ slug:
   }
 
   return (
-      <Container>
+      <Container className="mt-8 mb-16">
             {/* Breadcrumb */}
             <nav className="flex items-center gap-2 text-sm text-gray-600 mb-8">
                <Link href="/" className="hover:text-(--accent-primary)">Home</Link>
@@ -89,12 +90,6 @@ export default async function ArticlePage({ params }: { params : Promise<{ slug:
                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                               </svg>
                               {formatDate(article.publishedAt)}
-                           </div>
-                           <div className="flex items-center gap-2">
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              {article.readTime || '5'} Min Read
                            </div>
                         </div>
 

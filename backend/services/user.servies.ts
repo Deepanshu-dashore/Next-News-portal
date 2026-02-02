@@ -64,6 +64,15 @@ export class UserService {
         return await user.save();
     }
 
+    static async updateLastLogin(id: string) {
+        await connectDB();
+        return await User.findByIdAndUpdate(
+            id,
+            { lastLogin: new Date() },
+            { new: true }
+        );
+    }
+
     static async deleteUser(id: string) {
         await connectDB();
         return await User.findByIdAndDelete(id);
